@@ -8,7 +8,6 @@
 #include <QtWidgets>
 #include <QtGui>
 #include <QVideoWidget>
-#include <string>
 ///
 #include <QFile>
 #include <QBuffer>
@@ -26,7 +25,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-private slots:    
+private slots:
     void durationChanged(qint64 duration);
     void positionChanged(qint64 duration);
     
@@ -43,10 +42,14 @@ private slots:
     void on_pushButton_Seek_Backward_clicked();
 
     void on_pushButton_Seek_Forward_clicked();
+
     void loadVideo(QMediaPlayer::MediaStatus status);
+
     QStringList getFileList(const QString& directoryPath);
 
-    void on_horizontalSlider_Duration_sliderMoved(int position);
+    void on_horizontalSlider_Duration_sliderMoved();
+
+    void on_groupBox_Video_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -62,11 +65,18 @@ private:
     QBuffer *buffer;
     QStringList fileListToLoad = {"part1","part2","part3"};
     QString selectedDirectory;
+    QString videoFileChunkPattern = "abcd*.mp4";
+    qint64 sliderTime = -1;
 
     const int chunkSize = 1024 * 1024; // 1 MB chunk size (adjust as needed)
     const int bufferThreshold = 10 * 1024 * 1024; // 10 MB buffer threshold
+    const int timeLimit = 120;
+    int fileCount = 0;
 
     
     void updateDuration(qint64 Duration);
+    void loadParticalarChunk(int videoIndex, int extraSeek);
+    void jumpToPosition(int secondToJump);
+    void openParticularChunk(QByteArray byteData);
 };
 #endif // MAINWINDOW_H

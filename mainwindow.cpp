@@ -28,7 +28,8 @@ MainWindow::MainWindow(QWidget *parent)
     //connect(Player, &QMediaPlayer::bufferProgressChanged,this, &MainWindow::handleBufferStatus);
     connect(Player, &QMediaPlayer::mediaStatusChanged, this, &MainWindow::loadVideo);
 
-    ui->horizontalSlider_Duration->setRange(0, (5*60+53));
+    ui->horizontalSlider_Duration->setRange(0, (5*timeLimit));
+    connect(ui->horizontalSlider_Duration,&QSlider::sliderReleased,this,&MainWindow::on_horizontalSlider_Duration_sliderMoved);
 }
 
 MainWindow::~MainWindow()
@@ -39,10 +40,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::durationChanged(qint64 duration)
 {
-    // mDuration = duration / 1000;
-    // ui->horizontalSlider_Duration->setMaximum(mDuration);
-
-    mDuration = (5*60) + 53;
+    mDuration = (5*timeLimit);
     ui->horizontalSlider_Duration->setMaximum(mDuration);
 }
 
@@ -50,17 +48,17 @@ void MainWindow::positionChanged(qint64 duration)
 {
     if (!ui->horizontalSlider_Duration->isSliderDown())
     {
-        ui->horizontalSlider_Duration->setValue((currentIndex * 60) + duration / 1000);
+        ui->horizontalSlider_Duration->setValue((currentIndex * timeLimit) + duration / 1000);
     }
-    updateDuration((currentIndex * 60) + duration / 1000);
+    updateDuration((currentIndex * timeLimit) + duration / 1000);
 }
 
 void MainWindow::updateDuration(qint64 Duration)
 {
     if (Duration || mDuration)
     {
-        QTime CurrentTime((Duration / 3600) % 60, (Duration / 60) % 60, Duration % 60, (Duration * 1000) % 1000);
-        QTime TotalTime((mDuration / 3600) % 60, (mDuration / 60) % 60, mDuration % 60, (mDuration * 1000) % 1000);
+        QTime CurrentTime((Duration / 3600) % (timeLimit / 2), (Duration / 60) % (timeLimit /2), Duration % (timeLimit /2), (Duration * 1000) % 1000);
+        QTime TotalTime((mDuration / 3600) % (timeLimit / 2), (mDuration / 60) % (timeLimit /2), mDuration % (timeLimit/2), (mDuration * 1000) % 1000);
         QString Format ="";
         if (mDuration > 3600) Format = "hh:mm:ss";
         else Format = "mm:ss";
@@ -72,35 +70,23 @@ void MainWindow::updateDuration(qint64 Duration)
 
 void MainWindow::on_actionOpen_triggered()
 {
-   //FileName = QFileDialog::getOpenFileName(this, tr("Select Video File"), "", tr("MP4 Files (*.mp4)"));
-    // FileName = QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
     selectedDirectory = QFileDialog::getExistingDirectory(nullptr, "Select Directory", QDir::homePath(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     QDir directory(selectedDirectory);
-    QString filter = "output*.mp4";
+    QString filter = videoFileChunkPattern;
     QStringList files = directory.entryList(QStringList() << filter,QDir::Files);
-
+    fileCount = files.length();
 
     Video = new QVideoWidget();
-
     Video->setGeometry(5, 5, ui->groupBox_Video->width() - 10, ui->groupBox_Video->height() - 10);
-
     Video->setParent(ui->groupBox_Video);
-
     Player->setVideoOutput(Video);
-
     ///
     /// \brief file
     ///
-    QBuffer* newBuffer;
     QFile file(directory.filePath(files.first()));
     file.open(QIODevice::ReadOnly);
     QByteArray videoArray = file.readAll();
-    newBuffer = new QBuffer();
-    newBuffer->setData(videoArray);
-    newBuffer->open(QIODevice::ReadWrite);
-    Player->setSourceDevice(newBuffer,QUrl("some.mp4"));
-    //Player->setSource(QUrl(FileName));
-    //Player->setMedia();
+    openParticularChunk(videoArray);
     Video->setVisible(true);
     Video->show();
 }
@@ -125,6 +111,7 @@ void MainWindow::on_pushButton_Play_Pause_clicked()
 void MainWindow::on_pushButton_Stop_clicked()
 {
     Player->stop();
+    sliderTime = -1;
 }
 
 
@@ -135,14 +122,12 @@ void MainWindow::on_pushButton_Volume_clicked()
         IS_Muted = true;
         ui->pushButton_Volume->setIcon(style()->standardIcon(QStyle::SP_MediaVolumeMuted));
         Player->audioOutput()->setMuted(true);
-        //Player->setMuted(true);
     }
     else
     {
         IS_Muted = false;
         ui->pushButton_Volume->setIcon(style()->standardIcon(QStyle::SP_MediaVolume));
         Player->audioOutput()->setMuted(false);
-        //Player->setMuted(false);
     }
 }
 
@@ -170,11 +155,6 @@ void MainWindow::on_pushButton_Seek_Forward_clicked()
 
 void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
 
-    QDir directory(selectedDirectory);
-    QStringList filesToPlay = getFileList(selectedDirectory);
-    //int fileIndex = (currentIndex * 60 + (duration / 1000)) / 60;
-    //qDebug() << "in loadVideo" << duration;
-    qDebug() << "Media Status" << status;
 
     if(status == QMediaPlayer::MediaStatus::BufferedMedia){
         Player->pause();
@@ -192,25 +172,12 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
     } else {
         currentIndex++;
     }
-    // Video->setVisible(false);
-    // Video->hide();
-    // if((duration / 100) == 5500 && isChanging == false){
-    //     //fileIndex = currentIndex + 1;
-    //     currentIndex++;
-    //     isChanging = true;
-    //     qDebug() << "duration: 50000" << duration;
-    // }
 
-    // if(isChanging == false) {
-    //     return;
-    // } else {
-    //     qDebug() << "passed 1st test";
-    // };
-
-
-    if(filesToPlay.length() == currentIndex) return;
+    if(fileCount <= currentIndex) return;
     else qDebug() << "passed 2st test";
 
+    QDir directory(selectedDirectory);
+    QStringList filesToPlay = getFileList(selectedDirectory);
     QFile file(directory.filePath(filesToPlay[currentIndex]));
     if (!file.open(QIODevice::ReadOnly)) {
         qDebug() << "Failed to open file for reading:" << file.errorString();
@@ -219,15 +186,73 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
 
     QByteArray videoArray = file.readAll();
     file.close(); // Close the file after reading
+    openParticularChunk(videoArray);
 
-    // Player->stop();
-    // Player->setVideoOutput(Video);
-    // Close the existing buffer, if it exists
+}
+
+ QStringList MainWindow::getFileList(const QString& directoryPath) {
+    QDir directory(directoryPath);
+    // Set the filter to match files starting with "part" and ending with ".mp4"
+    QStringList filters;
+    filters << videoFileChunkPattern;
+
+    directory.setNameFilters(filters);
+    // Get the list of files
+    QStringList fileList = directory.entryList(QDir::Files);
+    return fileList;
+}
+ void MainWindow::on_horizontalSlider_Duration_sliderMoved(){
+     if(sliderTime == -1){
+        sliderTime = QDateTime::currentMSecsSinceEpoch();
+     }
+     qint64 difference = QDateTime::currentMSecsSinceEpoch() - sliderTime;
+     qDebug() << difference;
+     if(difference >= 40){
+        int position = ui->horizontalSlider_Duration->sliderPosition();
+        jumpToPosition(position);
+     }
+     sliderTime = QDateTime::currentMSecsSinceEpoch();
+ }
+
+
+ void MainWindow::jumpToPosition(int secondToJump){
+     int videoIndexToJump = secondToJump / timeLimit;
+     int extraSecondsSeek = secondToJump % timeLimit;
+     loadParticalarChunk(videoIndexToJump,extraSecondsSeek);
+ }
+
+ void MainWindow::loadParticalarChunk(int videoIndex,int extraSeek){
+    if(fileCount <= currentIndex) return;
+
+    else qDebug() << "passed 2st inside "<< videoIndex << " " << currentIndex;
+
+    if(currentIndex == videoIndex){
+        Player->setPosition( extraSeek * 1000);
+        return;
+    }else {
+        currentIndex = videoIndex;
+    }
+
+    QDir directory(selectedDirectory);
+    QStringList filesToPlay = getFileList(selectedDirectory);
+    QFile file(directory.filePath(filesToPlay[videoIndex]));
+    if (!file.open(QIODevice::ReadOnly)) {
+        qDebug() << "Failed to open file for reading:" << file.errorString();
+        return; // or handle the error in some way
+    }
+
+    QByteArray videoArray = file.readAll();
+    file.close(); // Close the file after reading
+    openParticularChunk(videoArray);
+    Player->setPosition(extraSeek * 1000);
+
+ }
+
+ void MainWindow::openParticularChunk(QByteArray byteData){
     QBuffer* newBuffer;
-
     // Create a new buffer and set its data
     newBuffer = new QBuffer();
-    newBuffer->setData(videoArray);
+    newBuffer->setData(byteData);
 
     // Open the buffer for reading
     if (!newBuffer->open(QIODevice::ReadWrite)) {
@@ -235,40 +260,14 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
         return; // or handle the error in some way
     }
     qDebug() << "here";
-
     // Set the source device for the player
     Player->setSourceDevice(newBuffer, QUrl("someelse.mp4"));
-    //Player->play();
-    // Video->setVisible(true);
-    // Video->show();
-    // IS_Pause = true;
-    // isChanging = false;
     qDebug() << "after here";
-    //on_pushButton_Play_Pause_clicked();
-}
+ }
 
- QStringList MainWindow::getFileList(const QString& directoryPath) {
-    QDir directory(directoryPath);
 
-    // Set the filter to match files starting with "part" and ending with ".mp4"
-    QStringList filters;
-    filters << "output*.mp4";
-
-    directory.setNameFilters(filters);
-
-    // Get the list of files
-    QStringList fileList = directory.entryList(QDir::Files);
-
-    // Print the list of files
-    //qDebug() << "Files in directory:" << directoryPath;
-    // for (const QString& file : fileList) {
-    //     qDebug() << file;
-    // }
-    return fileList;
-}
-
- void MainWindow::on_horizontalSlider_Duration_sliderMoved(int position)
+ void MainWindow::on_groupBox_Video_clicked()
  {
-    Player->setPosition(position * 1000);
+
  }
 
