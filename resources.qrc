@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>volume-low</file>
+        <file>volume-high</file>
+        <file>ten-sec-backward</file>
+        <file>ten-sec-forward</file>
+        <file>full-screen</file>
+        <file>pause_button</file>
+        <file>play_button</file>
+        <file>normal_screen</file>
+    </qresource>
+</RCC>

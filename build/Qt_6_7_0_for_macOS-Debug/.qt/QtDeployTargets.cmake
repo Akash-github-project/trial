@@ -1,0 +1,1 @@
+set(__QT_DEPLOY_TARGET_video_player_testing_FILE /Users/akashsinha/trial/build/Qt_6_7_0_for_macOS-Debug/video_player_testing.app/Contents/MacOS/video_player_testing)

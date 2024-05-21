@@ -9,15 +9,30 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt5 REQUIRED COMPONENTS Widgets)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
-FIND_PACKAGE( Qt5Multimedia REQUIRED )
-FIND_PACKAGE( Qt5MultimediaWidgets REQUIRED )
+FIND_PACKAGE( Qt6Multimedia REQUIRED )
+FIND_PACKAGE( Qt6MultimediaWidgets REQUIRED )
 SET(QT_USE_QTMULTIMEDIA TRUE)
 SET(QT_USE_QTMULTIMEDIAWIDGETS TRUE)
-find_package(Qt5 REQUIRED COMPONENTS Multimedia)
-find_package(Qt5 REQUIRED COMPONENTS MultimediaWidgets)
+find_package(Qt6 REQUIRED COMPONENTS Multimedia)
+find_package(Qt6 REQUIRED COMPONENTS MultimediaWidgets)
+
+add_library(cryptopp STATIC IMPORTED)
+#set_target_properties(LibCrypto PROPERTIES IMPORTED_LOCATION "libs/lib")
+set_target_properties( # Specifies the target library.
+                       cryptopp
+
+                       # Specifies the parameter you want to define.
+                       PROPERTIES IMPORTED_LOCATION
+
+                       # Provides the path to the library you want to import.
+                       ${CMAKE_CURRENT_SOURCE_DIR}/libs/lib/libcryptopp.a )
+
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/include/cryptopp/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
 
 #QT6_USE_MODULES (${EXECUTABLE_NAME} Multimedia MultimediaWidgets)
 
@@ -28,10 +43,16 @@ set(PROJECT_SOURCES
         mainwindow.ui
 )
 
-if(${QT_VERSION_MAJOR} GREATER_EQUAL 5)
+if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(video_player_testing
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        videoprogressbarcontroller.h videoprogressbarcontroller.cpp
+        encryptionhandler.h encryptionhandler.cpp
+        NewDecription.h
+        circularbutton.h circularbutton.cpp
+        resources.qrc
+
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET video_player_testing APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -54,10 +75,11 @@ endif()
 target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::Multimedia)
 target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::MultimediaWidgets)
+target_link_libraries(video_player_testing PRIVATE cryptopp)
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.
-if(${QT_VERSION} VERSION_LESS 5.15.2)
+if(${QT_VERSION} VERSION_LESS 6.6.3)
   set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.video_player_testing)
 endif()
 set_target_properties(video_player_testing PROPERTIES
@@ -75,6 +97,6 @@ install(TARGETS video_player_testing
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-if(QT_VERSION_MAJOR EQUAL 5)
+if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(video_player_testing)
 endif()

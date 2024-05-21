@@ -1,0 +1,29 @@
+{
+	"BUILD_DIR" : "/Users/akashsinha/trial/build/Qt_6_7_0_for_macOS-Debug/video_player_testing_autogen",
+	"CMAKE_BINARY_DIR" : "/Users/akashsinha/trial/build/Qt_6_7_0_for_macOS-Debug",
+	"CMAKE_CURRENT_BINARY_DIR" : "/Users/akashsinha/trial/build/Qt_6_7_0_for_macOS-Debug",
+	"CMAKE_CURRENT_SOURCE_DIR" : "/Users/akashsinha/trial",
+	"CMAKE_SOURCE_DIR" : "/Users/akashsinha/trial",
+	"INCLUDE_DIR" : "/Users/akashsinha/trial/build/Qt_6_7_0_for_macOS-Debug/video_player_testing_autogen/include",
+	"INPUTS" : 
+	[
+		"/Users/akashsinha/trial/ten-sec-forward",
+		"/Users/akashsinha/trial/play_button",
+		"/Users/akashsinha/trial/pause_button",
+		"/Users/akashsinha/trial/ten-sec-backward",
+		"/Users/akashsinha/trial/full-screen",
+		"/Users/akashsinha/trial/volume-high",
+		"/Users/akashsinha/trial/normal_screen",
+		"/Users/akashsinha/trial/volume-low"
+	],
+	"LOCK_FILE" : "/Users/akashsinha/trial/build/Qt_6_7_0_for_macOS-Debug/CMakeFiles/video_player_testing_autogen.dir/AutoRcc_resources_EWIEGA46WW_Lock.lock",
+	"MULTI_CONFIG" : false,
+	"OPTIONS" : [ "--no-zstd", "-name", "resources" ],
+	"OUTPUT_CHECKSUM" : "EWIEGA46WW",
+	"OUTPUT_NAME" : "qrc_resources.cpp",
+	"RCC_EXECUTABLE" : "/Users/akashsinha/Qt/6.7.0/macos/./libexec/rcc",
+	"RCC_LIST_OPTIONS" : [ "--list" ],
+	"SETTINGS_FILE" : "/Users/akashsinha/trial/build/Qt_6_7_0_for_macOS-Debug/CMakeFiles/video_player_testing_autogen.dir/AutoRcc_resources_EWIEGA46WW_Used.txt",
+	"SOURCE" : "/Users/akashsinha/trial/resources.qrc",
+	"VERBOSITY" : 0
+}
