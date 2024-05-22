@@ -15,6 +15,7 @@
 #include <QFile>
 #include <QBuffer>
 #include <QDir>
+#include <QGraphicsVideoItem>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -31,8 +32,13 @@ public:
     void makeButtonRound(QPushButton* button);
     void resizeEvent(QResizeEvent *event);
     void slderClicked();
+    void setupFullScreenControls();
+public slots:
+    void fullScreenChnaged(const QRectF &rect);
+    void on_normal_button_pressed();
+    void handlePlayPauseButtonState(QMediaPlayer::PlaybackState playbackState);
 private slots:
-    void onResized(int w, int h);
+
     void durationChanged(qint64 duration);
     void positionChanged(qint64 duration);
     
@@ -51,7 +57,6 @@ private slots:
     void on_pushButton_Seek_Forward_clicked();
 
     void loadVideo(QMediaPlayer::MediaStatus status);
-    void playAnyRemainig(QMediaPlayer::MediaStatus status);
 
     QStringList getFileList(const QString& directoryPath);
 
@@ -77,6 +82,15 @@ private:
     Ui::MainWindow *ui;
     QMediaPlayer *Player;
     QVideoWidget *Video = nullptr;
+    QGraphicsWidget *GraphicsWidget = nullptr;
+    // Create a QGraphicsScene
+    QGraphicsScene *scene;
+    QGraphicsView *view = nullptr;
+
+    // Create a QGraphicsVideoItem
+    QGraphicsVideoItem *videoItem = nullptr;
+
+
     qint64 mDuration;
     bool IS_Pause = true;
     bool IS_Muted = false;
@@ -86,17 +100,35 @@ private:
     QString FileName;
     QBuffer *buffer;
     VideoProgressBarController *seekbarController = nullptr;
+    VideoProgressBarController *fsSeekbarController = nullptr;
     QStringList fileListToLoad = {"part1","part2","part3"};
     QString selectedDirectory;
     QString videoFileChunkPattern = "encrypted_chunk_*.mp4";
     qint64 sliderTime = -1;
     EncryptionHandler *handler = nullptr;
+    QGraphicsTextItem *watermarkItem = nullptr;
     QMetaObject::Connection seekbarConnection ;
     const int timeLimit = 120;
     int fileCount = 0;
     int extraSeekValue = -1;
-
-    
+    ///////////// full screen controls
+     bool isFullScreen = false;
+     QPushButton *fsPlayPauseButton = nullptr;
+     QPushButton *fsStopButton = nullptr;
+     QPushButton *fsTenSecForward = nullptr;
+     QPushButton *fsTenSecBackward = nullptr;
+     QPushButton *fsNormalButton = nullptr;
+     QPushButton *fsSpeed1x = nullptr;
+     QPushButton *fsSpeed2x = nullptr;
+     QPushButton *fsSpeed3x = nullptr;
+     QPushButton *fsSpeed4x = nullptr;
+     QSlider *fsSeekbar = nullptr;
+     QLabel *fsCurrentTime = nullptr;
+     QLabel *fsTotalTime = nullptr;
+     QMetaObject::Connection fsSeekbarConnection;
+     QWidget *controls;
+     bool mediaStopped = false;
+    /////////////////
     void updateDuration(qint64 Duration);
     void loadParticalarChunk(int videoIndex, int extraSeek);
     void jumpToPosition(int secondToJump);

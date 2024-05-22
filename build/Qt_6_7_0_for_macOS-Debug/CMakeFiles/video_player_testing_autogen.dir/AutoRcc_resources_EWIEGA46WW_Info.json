@@ -14,6 +14,7 @@
 		"/Users/akashsinha/trial/full-screen",
 		"/Users/akashsinha/trial/volume-high",
 		"/Users/akashsinha/trial/normal_screen",
+		"/Users/akashsinha/trial/controls_overlay.ui",
 		"/Users/akashsinha/trial/volume-low"
 	],
 	"LOCK_FILE" : "/Users/akashsinha/trial/build/Qt_6_7_0_for_macOS-Debug/CMakeFiles/video_player_testing_autogen.dir/AutoRcc_resources_EWIEGA46WW_Lock.lock",

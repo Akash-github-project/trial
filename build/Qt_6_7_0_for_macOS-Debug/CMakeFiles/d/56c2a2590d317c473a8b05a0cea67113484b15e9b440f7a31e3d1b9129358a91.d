@@ -542,7 +542,9 @@ video_player_testing_autogen/timestamp: \
   /Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimedia.framework/Versions/A/Headers/qvideosink.h \
   /Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimedia.framework/Versions/A/Headers/qwavedecoder.h \
   /Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimedia.framework/Versions/A/Headers/qwindowcapture.h \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimediaWidgets.framework/Versions/A/Headers/QGraphicsVideoItem \
   /Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimediaWidgets.framework/Versions/A/Headers/QVideoWidget \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimediaWidgets.framework/Versions/A/Headers/qgraphicsvideoitem.h \
   /Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimediaWidgets.framework/Versions/A/Headers/qtmultimediawidgetsexports.h \
   /Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimediaWidgets.framework/Versions/A/Headers/qtmultimediawidgetsglobal.h \
   /Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimediaWidgets.framework/Versions/A/Headers/qvideowidget.h \
@@ -928,6 +930,37 @@ video_player_testing_autogen/timestamp: \
   /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6Network/Qt6QTlsBackendOpenSSLPluginConfig.cmake \
   /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6Network/Qt6QTlsBackendOpenSSLPluginTargets-relwithdebinfo.cmake \
   /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6Network/Qt6QTlsBackendOpenSSLPluginTargets.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGL/Qt6OpenGLAdditionalTargetInfo.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGL/Qt6OpenGLConfig.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGL/Qt6OpenGLConfigVersion.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGL/Qt6OpenGLConfigVersionImpl.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGL/Qt6OpenGLDependencies.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGL/Qt6OpenGLTargets-relwithdebinfo.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGL/Qt6OpenGLTargets.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGL/Qt6OpenGLVersionlessTargets.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsAdditionalTargetInfo.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsConfig.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsConfigVersion.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsConfigVersionImpl.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsDependencies.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsTargets-relwithdebinfo.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsTargets.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsVersionlessTargets.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiPlugin/Qt6UiPluginAdditionalTargetInfo.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiPlugin/Qt6UiPluginConfig.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiPlugin/Qt6UiPluginConfigVersion.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiPlugin/Qt6UiPluginConfigVersionImpl.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiPlugin/Qt6UiPluginDependencies.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiPlugin/Qt6UiPluginTargets.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiPlugin/Qt6UiPluginVersionlessTargets.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiTools/Qt6UiToolsAdditionalTargetInfo.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiTools/Qt6UiToolsConfig.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiTools/Qt6UiToolsConfigVersion.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiTools/Qt6UiToolsConfigVersionImpl.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiTools/Qt6UiToolsDependencies.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiTools/Qt6UiToolsTargets-relwithdebinfo.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiTools/Qt6UiToolsTargets.cmake \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiTools/Qt6UiToolsVersionlessTargets.cmake \
   /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6Widgets/Qt6QMacStylePluginAdditionalTargetInfo.cmake \
   /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6Widgets/Qt6QMacStylePluginConfig.cmake \
   /Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6Widgets/Qt6QMacStylePluginTargets-relwithdebinfo.cmake \
@@ -993,6 +1026,8 @@ video_player_testing_autogen/timestamp: \
   /Users/akashsinha/trial/circularbutton.h \
   /Users/akashsinha/trial/encryptionhandler.cpp \
   /Users/akashsinha/trial/encryptionhandler.h \
+  /Users/akashsinha/trial/fullscreencontrolhoverhandler.cpp \
+  /Users/akashsinha/trial/fullscreencontrolhoverhandler.h \
   /Users/akashsinha/trial/libs/include/cryptopp/aes.h \
   /Users/akashsinha/trial/libs/include/cryptopp/algparam.h \
   /Users/akashsinha/trial/libs/include/cryptopp/allocate.h \

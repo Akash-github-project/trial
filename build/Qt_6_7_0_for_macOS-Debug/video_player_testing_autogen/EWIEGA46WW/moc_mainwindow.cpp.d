@@ -543,7 +543,9 @@
   /Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimedia.framework/Versions/A/Headers/qvideosink.h \
   /Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimedia.framework/Versions/A/Headers/qwavedecoder.h \
   /Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimedia.framework/Versions/A/Headers/qwindowcapture.h \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimediaWidgets.framework/Versions/A/Headers/QGraphicsVideoItem \
   /Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimediaWidgets.framework/Versions/A/Headers/QVideoWidget \
+  /Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimediaWidgets.framework/Versions/A/Headers/qgraphicsvideoitem.h \
   /Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimediaWidgets.framework/Versions/A/Headers/qtmultimediawidgetsexports.h \
   /Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimediaWidgets.framework/Versions/A/Headers/qtmultimediawidgetsglobal.h \
   /Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimediaWidgets.framework/Versions/A/Headers/qvideowidget.h \

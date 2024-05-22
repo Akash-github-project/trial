@@ -1421,6 +1421,248 @@
 		},
 		{
 			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiTools/Qt6UiToolsConfigVersion.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiTools/Qt6UiToolsConfigVersionImpl.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiTools/Qt6UiToolsConfig.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/Tools/CMake/CMake.app/Contents/share/cmake-3.27/Modules/CMakeFindDependencyMacro.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiTools/Qt6UiToolsDependencies.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiPlugin/Qt6UiPluginConfigVersion.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiPlugin/Qt6UiPluginConfigVersionImpl.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiPlugin/Qt6UiPluginConfig.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/Tools/CMake/CMake.app/Contents/share/cmake-3.27/Modules/CMakeFindDependencyMacro.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiPlugin/Qt6UiPluginDependencies.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiPlugin/Qt6UiPluginTargets.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiPlugin/Qt6UiPluginAdditionalTargetInfo.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiPlugin/Qt6UiPluginVersionlessTargets.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsConfigVersion.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsConfigVersionImpl.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsConfig.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/Tools/CMake/CMake.app/Contents/share/cmake-3.27/Modules/CMakeFindDependencyMacro.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsDependencies.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGL/Qt6OpenGLConfigVersion.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGL/Qt6OpenGLConfigVersionImpl.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGL/Qt6OpenGLConfig.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/Tools/CMake/CMake.app/Contents/share/cmake-3.27/Modules/CMakeFindDependencyMacro.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGL/Qt6OpenGLDependencies.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGL/Qt6OpenGLTargets.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGL/Qt6OpenGLTargets-relwithdebinfo.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGL/Qt6OpenGLAdditionalTargetInfo.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGL/Qt6OpenGLVersionlessTargets.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsTargets.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsTargets-relwithdebinfo.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsAdditionalTargetInfo.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsVersionlessTargets.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiTools/Qt6UiToolsTargets.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiTools/Qt6UiToolsTargets-relwithdebinfo.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiTools/Qt6UiToolsAdditionalTargetInfo.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiTools/Qt6UiToolsVersionlessTargets.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/Qt6ConfigVersion.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/Qt6ConfigVersionImpl.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/Qt6Config.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/Qt6ConfigExtras.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/QtPublicCMakeVersionHelpers.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/Qt6Targets.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/Qt6VersionlessTargets.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/QtFeature.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/Tools/CMake/CMake.app/Contents/share/cmake-3.27/Modules/CheckCXXCompilerFlag.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/QtFeatureCommon.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/QtPublicAppleHelpers.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/QtPublicCMakeHelpers.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/QtPublicCMakeVersionHelpers.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/QtPublicDependencyHelpers.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/QtPublicExternalProjectHelpers.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/QtPublicFinalizerHelpers.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/QtPublicFindPackageHelpers.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/QtPublicPluginHelpers.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/QtPublicTargetHelpers.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/QtPublicTestHelpers.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/QtPublicToolHelpers.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/QtPublicWalkLibsHelpers.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/Tools/CMake/CMake.app/Contents/share/cmake-3.27/Modules/CMakeFindDependencyMacro.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/Qt6Dependencies.cmake"
+		},
+		{
+			"isExternal" : true,
 			"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/Qt6ConfigVersion.cmake"
 		},
 		{

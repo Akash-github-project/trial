@@ -34,6 +34,11 @@
 			"/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/QtPublicDependencyHelpers.cmake",
 			"/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6Multimedia/Qt6MultimediaDependencies.cmake",
 			"/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6Multimedia/Qt6MultimediaConfig.cmake",
+			"/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsVersionlessTargets.cmake",
+			"/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsConfig.cmake",
+			"/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiTools/Qt6UiToolsDependencies.cmake",
+			"/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiTools/Qt6UiToolsConfig.cmake",
+			"/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsTargets.cmake",
 			"/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6Widgets/Qt6WidgetsTargets.cmake",
 			"/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6Widgets/Qt6WidgetsConfig.cmake",
 			"/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6/Qt6Config.cmake",
@@ -51,7 +56,7 @@
 			{
 				"command" : 3,
 				"file" : 1,
-				"line" : 47,
+				"line" : 49,
 				"parent" : 0
 			},
 			{
@@ -75,25 +80,31 @@
 			{
 				"command" : 4,
 				"file" : 1,
-				"line" : 94,
+				"line" : 99,
 				"parent" : 0
 			},
 			{
 				"command" : 5,
 				"file" : 1,
-				"line" : 77,
+				"line" : 81,
 				"parent" : 0
 			},
 			{
 				"command" : 5,
 				"file" : 1,
-				"line" : 78,
+				"line" : 82,
 				"parent" : 0
 			},
 			{
 				"command" : 5,
 				"file" : 1,
-				"line" : 76,
+				"line" : 83,
+				"parent" : 0
+			},
+			{
+				"command" : 5,
+				"file" : 1,
+				"line" : 80,
 				"parent" : 0
 			},
 			{
@@ -104,61 +115,135 @@
 			},
 			{
 				"file" : 7,
-				"parent" : 9
+				"parent" : 10
 			},
 			{
 				"command" : 7,
 				"file" : 7,
 				"line" : 43,
-				"parent" : 10
+				"parent" : 11
 			},
 			{
 				"file" : 6,
-				"parent" : 11
+				"parent" : 12
 			},
 			{
 				"command" : 10,
 				"file" : 6,
 				"line" : 42,
-				"parent" : 12
+				"parent" : 13
 			},
 			{
 				"command" : 9,
 				"file" : 5,
 				"line" : 111,
-				"parent" : 13
+				"parent" : 14
 			},
 			{
 				"command" : 8,
 				"file" : 4,
 				"line" : 76,
-				"parent" : 14
+				"parent" : 15
 			},
 			{
 				"file" : 3,
-				"parent" : 15
+				"parent" : 16
 			},
 			{
 				"command" : 7,
 				"file" : 3,
 				"line" : 60,
-				"parent" : 16
+				"parent" : 17
 			},
 			{
 				"file" : 2,
-				"parent" : 17
+				"parent" : 18
 			},
 			{
 				"command" : 6,
 				"file" : 2,
 				"line" : 61,
-				"parent" : 18
+				"parent" : 19
+			},
+			{
+				"command" : 8,
+				"file" : 1,
+				"line" : 17,
+				"parent" : 0
+			},
+			{
+				"file" : 11,
+				"parent" : 21
+			},
+			{
+				"command" : 7,
+				"file" : 11,
+				"line" : 43,
+				"parent" : 22
+			},
+			{
+				"file" : 10,
+				"parent" : 23
+			},
+			{
+				"command" : 10,
+				"file" : 10,
+				"line" : 42,
+				"parent" : 24
+			},
+			{
+				"command" : 9,
+				"file" : 5,
+				"line" : 111,
+				"parent" : 25
+			},
+			{
+				"command" : 8,
+				"file" : 4,
+				"line" : 76,
+				"parent" : 26
+			},
+			{
+				"file" : 9,
+				"parent" : 27
+			},
+			{
+				"command" : 7,
+				"file" : 9,
+				"line" : 60,
+				"parent" : 28
+			},
+			{
+				"file" : 8,
+				"parent" : 29
+			},
+			{
+				"command" : 6,
+				"file" : 8,
+				"line" : 61,
+				"parent" : 30
 			},
 			{
 				"command" : 5,
 				"file" : 1,
-				"line" : 75,
+				"line" : 79,
 				"parent" : 0
+			},
+			{
+				"command" : 7,
+				"file" : 9,
+				"line" : 55,
+				"parent" : 28
+			},
+			{
+				"file" : 12,
+				"parent" : 33
+			},
+			{
+				"command" : 6,
+				"file" : 12,
+				"line" : 62,
+				"parent" : 34
 			},
 			{
 				"command" : 8,
@@ -167,34 +252,34 @@
 				"parent" : 0
 			},
 			{
-				"file" : 10,
-				"parent" : 21
+				"file" : 15,
+				"parent" : 36
 			},
 			{
 				"command" : 8,
-				"file" : 10,
+				"file" : 15,
 				"line" : 167,
-				"parent" : 22
+				"parent" : 37
 			},
 			{
-				"file" : 9,
-				"parent" : 23
+				"file" : 14,
+				"parent" : 38
 			},
 			{
 				"command" : 7,
-				"file" : 9,
+				"file" : 14,
 				"line" : 55,
-				"parent" : 24
+				"parent" : 39
 			},
 			{
-				"file" : 8,
-				"parent" : 25
+				"file" : 13,
+				"parent" : 40
 			},
 			{
 				"command" : 6,
-				"file" : 8,
+				"file" : 13,
 				"line" : 62,
-				"parent" : 26
+				"parent" : 41
 			},
 			{
 				"command" : 5,
@@ -204,94 +289,94 @@
 			},
 			{
 				"command" : 7,
-				"file" : 9,
+				"file" : 14,
 				"line" : 43,
-				"parent" : 24
-			},
-			{
-				"file" : 13,
-				"parent" : 29
-			},
-			{
-				"command" : 10,
-				"file" : 13,
-				"line" : 42,
-				"parent" : 30
-			},
-			{
-				"command" : 9,
-				"file" : 5,
-				"line" : 111,
-				"parent" : 31
-			},
-			{
-				"command" : 8,
-				"file" : 4,
-				"line" : 76,
-				"parent" : 32
-			},
-			{
-				"file" : 12,
-				"parent" : 33
-			},
-			{
-				"command" : 7,
-				"file" : 12,
-				"line" : 57,
-				"parent" : 34
-			},
-			{
-				"file" : 11,
-				"parent" : 35
-			},
-			{
-				"command" : 6,
-				"file" : 11,
-				"line" : 62,
-				"parent" : 36
-			},
-			{
-				"command" : 9,
-				"file" : 5,
-				"line" : 111,
-				"parent" : 31
-			},
-			{
-				"command" : 8,
-				"file" : 4,
-				"line" : 76,
-				"parent" : 38
-			},
-			{
-				"file" : 15,
 				"parent" : 39
 			},
 			{
-				"command" : 7,
-				"file" : 15,
-				"line" : 55,
-				"parent" : 40
+				"file" : 18,
+				"parent" : 44
 			},
 			{
-				"file" : 14,
-				"parent" : 41
+				"command" : 10,
+				"file" : 18,
+				"line" : 42,
+				"parent" : 45
+			},
+			{
+				"command" : 9,
+				"file" : 5,
+				"line" : 111,
+				"parent" : 46
+			},
+			{
+				"command" : 8,
+				"file" : 4,
+				"line" : 76,
+				"parent" : 47
+			},
+			{
+				"file" : 17,
+				"parent" : 48
+			},
+			{
+				"command" : 7,
+				"file" : 17,
+				"line" : 57,
+				"parent" : 49
+			},
+			{
+				"file" : 16,
+				"parent" : 50
 			},
 			{
 				"command" : 6,
-				"file" : 14,
+				"file" : 16,
 				"line" : 62,
-				"parent" : 42
+				"parent" : 51
+			},
+			{
+				"command" : 9,
+				"file" : 5,
+				"line" : 111,
+				"parent" : 46
+			},
+			{
+				"command" : 8,
+				"file" : 4,
+				"line" : 76,
+				"parent" : 53
+			},
+			{
+				"file" : 20,
+				"parent" : 54
+			},
+			{
+				"command" : 7,
+				"file" : 20,
+				"line" : 55,
+				"parent" : 55
+			},
+			{
+				"file" : 19,
+				"parent" : 56
+			},
+			{
+				"command" : 6,
+				"file" : 19,
+				"line" : 62,
+				"parent" : 57
 			},
 			{
 				"command" : 12,
 				"file" : 1,
-				"line" : 33,
+				"line" : 35,
 				"parent" : 0
 			},
 			{
 				"command" : 12,
 				"file" : 1,
-				"line" : 34,
+				"line" : 36,
 				"parent" : 0
 			}
 		]
@@ -308,11 +393,11 @@
 			"defines" : 
 			[
 				{
-					"backtrace" : 28,
+					"backtrace" : 43,
 					"define" : "QT_CORE_LIB"
 				},
 				{
-					"backtrace" : 20,
+					"backtrace" : 32,
 					"define" : "QT_GUI_LIB"
 				},
 				{
@@ -320,42 +405,54 @@
 					"define" : "QT_MULTIMEDIAWIDGETS_LIB"
 				},
 				{
-					"backtrace" : 8,
+					"backtrace" : 9,
 					"define" : "QT_MULTIMEDIA_LIB"
 				},
 				{
-					"backtrace" : 8,
+					"backtrace" : 9,
 					"define" : "QT_NETWORK_LIB"
 				},
 				{
-					"backtrace" : 20,
+					"backtrace" : 7,
+					"define" : "QT_OPENGLWIDGETS_LIB"
+				},
+				{
+					"backtrace" : 7,
+					"define" : "QT_OPENGL_LIB"
+				},
+				{
+					"backtrace" : 7,
+					"define" : "QT_UITOOLS_LIB"
+				},
+				{
+					"backtrace" : 32,
 					"define" : "QT_WIDGETS_LIB"
 				}
 			],
 			"frameworks" : 
 			[
 				{
-					"backtrace" : 28,
+					"backtrace" : 43,
 					"isSystem" : true,
 					"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtCore.framework"
 				},
 				{
-					"backtrace" : 20,
+					"backtrace" : 32,
 					"isSystem" : true,
 					"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtWidgets.framework"
 				},
 				{
-					"backtrace" : 20,
+					"backtrace" : 32,
 					"isSystem" : true,
 					"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtGui.framework"
 				},
 				{
-					"backtrace" : 8,
+					"backtrace" : 9,
 					"isSystem" : true,
 					"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimedia.framework"
 				},
 				{
-					"backtrace" : 8,
+					"backtrace" : 9,
 					"isSystem" : true,
 					"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtNetwork.framework"
 				},
@@ -363,6 +460,21 @@
 					"backtrace" : 6,
 					"isSystem" : true,
 					"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimediaWidgets.framework"
+				},
+				{
+					"backtrace" : 7,
+					"isSystem" : true,
+					"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtUiTools.framework"
+				},
+				{
+					"backtrace" : 7,
+					"isSystem" : true,
+					"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtOpenGLWidgets.framework"
+				},
+				{
+					"backtrace" : 7,
+					"isSystem" : true,
+					"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtOpenGL.framework"
 				}
 			],
 			"includes" : 
@@ -372,45 +484,45 @@
 					"path" : "/Users/akashsinha/trial/build/Qt_6_7_0_for_macOS-Debug/video_player_testing_autogen/include"
 				},
 				{
-					"backtrace" : 44,
+					"backtrace" : 59,
 					"path" : "/Users/akashsinha/trial/libs/include/cryptopp"
 				},
 				{
-					"backtrace" : 45,
+					"backtrace" : 60,
 					"path" : "/Users/akashsinha/trial"
 				},
 				{
-					"backtrace" : 28,
+					"backtrace" : 43,
 					"isSystem" : true,
 					"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtCore.framework/Headers"
 				},
 				{
-					"backtrace" : 28,
+					"backtrace" : 43,
 					"isSystem" : true,
 					"path" : "/Users/akashsinha/Qt/6.7.0/macos/mkspecs/macx-clang"
 				},
 				{
-					"backtrace" : 28,
+					"backtrace" : 43,
 					"isSystem" : true,
 					"path" : "/Users/akashsinha/Qt/6.7.0/macos/include"
 				},
 				{
-					"backtrace" : 20,
+					"backtrace" : 32,
 					"isSystem" : true,
 					"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtWidgets.framework/Headers"
 				},
 				{
-					"backtrace" : 20,
+					"backtrace" : 32,
 					"isSystem" : true,
 					"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtGui.framework/Headers"
 				},
 				{
-					"backtrace" : 8,
+					"backtrace" : 9,
 					"isSystem" : true,
 					"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimedia.framework/Headers"
 				},
 				{
-					"backtrace" : 8,
+					"backtrace" : 9,
 					"isSystem" : true,
 					"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtNetwork.framework/Headers"
 				},
@@ -418,6 +530,21 @@
 					"backtrace" : 6,
 					"isSystem" : true,
 					"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimediaWidgets.framework/Headers"
+				},
+				{
+					"backtrace" : 7,
+					"isSystem" : true,
+					"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtUiTools.framework/Headers"
+				},
+				{
+					"backtrace" : 7,
+					"isSystem" : true,
+					"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtOpenGLWidgets.framework/Headers"
+				},
+				{
+					"backtrace" : 7,
+					"isSystem" : true,
+					"path" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtOpenGL.framework/Headers"
 				}
 			],
 			"language" : "CXX",
@@ -425,8 +552,8 @@
 			{
 				"backtraces" : 
 				[
-					28,
-					28
+					43,
+					43
 				],
 				"standard" : "17"
 			},
@@ -438,7 +565,8 @@
 				6,
 				8,
 				11,
-				15
+				15,
+				19
 			]
 		}
 	],
@@ -494,41 +622,56 @@
 			},
 			{
 				"backtrace" : 7,
-				"fragment" : "/Users/akashsinha/trial/libs/lib/libcryptopp.a",
+				"fragment" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtUiTools.framework/Versions/A/QtUiTools",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 8,
+				"fragment" : "/Users/akashsinha/trial/libs/lib/libcryptopp.a",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 9,
 				"fragment" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimedia.framework/Versions/A/QtMultimedia",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 19,
+				"backtrace" : 20,
 				"fragment" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtNetwork.framework/Versions/A/QtNetwork",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 20,
+				"backtrace" : 31,
+				"fragment" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtOpenGLWidgets.framework/Versions/A/QtOpenGLWidgets",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 32,
 				"fragment" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtWidgets.framework/Versions/A/QtWidgets",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 27,
+				"backtrace" : 35,
+				"fragment" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtOpenGL.framework/Versions/A/QtOpenGL",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 42,
 				"fragment" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtGui.framework/Versions/A/QtGui",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 28,
+				"backtrace" : 43,
 				"fragment" : "/Users/akashsinha/Qt/6.7.0/macos/lib/QtCore.framework/Versions/A/QtCore",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 37,
+				"backtrace" : 52,
 				"fragment" : "-framework IOKit",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 37,
+				"backtrace" : 52,
 				"fragment" : "-framework DiskArbitration",
 				"role" : "libraries"
 			},
@@ -541,17 +684,17 @@
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 43,
+				"backtrace" : 58,
 				"fragment" : "-framework AppKit",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 43,
+				"backtrace" : 58,
 				"fragment" : "-framework ImageIO",
 				"role" : "libraries"
 			},
 			{
-				"backtrace" : 43,
+				"backtrace" : 58,
 				"fragment" : "-framework Metal",
 				"role" : "libraries"
 			}
@@ -577,7 +720,8 @@
 				6,
 				8,
 				11,
-				15
+				15,
+				19
 			]
 		},
 		{
@@ -589,7 +733,9 @@
 				7,
 				9,
 				10,
-				13
+				14,
+				16,
+				17
 			]
 		},
 		{
@@ -598,15 +744,16 @@
 			[
 				4,
 				12,
-				14
+				13,
+				18
 			]
 		},
 		{
 			"name" : "CMake Rules",
 			"sourceIndexes" : 
 			[
-				16,
-				17
+				20,
+				21
 			]
 		}
 	],
@@ -685,9 +832,31 @@
 			"sourceGroupIndex" : 2
 		},
 		{
+			"backtrace" : 4,
+			"path" : "controls_overlay.ui",
+			"sourceGroupIndex" : 2
+		},
+		{
+			"backtrace" : 4,
+			"path" : "fullscreencontrolhoverhandler.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 4,
+			"compileGroupIndex" : 0,
+			"path" : "fullscreencontrolhoverhandler.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
 			"backtrace" : 0,
 			"isGenerated" : true,
 			"path" : "build/Qt_6_7_0_for_macOS-Debug/video_player_testing_autogen/include/ui_mainwindow.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 0,
+			"isGenerated" : true,
+			"path" : "build/Qt_6_7_0_for_macOS-Debug/video_player_testing_autogen/include/ui_controls_overlay.h",
 			"sourceGroupIndex" : 1
 		},
 		{

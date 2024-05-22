@@ -244,6 +244,12 @@
  mdp:/Users/akashsinha/Qt/6.7.0/macos/lib/QtWidgets.framework/Versions/A/Headers/qwidget.h
  mdp:/Users/akashsinha/trial/build/Qt_6_7_0_for_macOS-Debug/video_player_testing_autogen/moc_predefs.h
  mdp:/Users/akashsinha/trial/circularbutton.h
+/Users/akashsinha/trial/encryptionhandler.h
+/Users/akashsinha/trial/mainwindow.cpp
+ uic:./ui_mainwindow.h
+/Users/akashsinha/trial/videoprogressbarcontroller.cpp
+/Users/akashsinha/trial/fullscreencontrolhoverhandler.h
+/Users/akashsinha/trial/fullscreencontrolhoverhandler.cpp
 /Users/akashsinha/trial/videoprogressbarcontroller.h
  mmc:Q_OBJECT
  mdp:/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/Availability.h
@@ -489,9 +495,6 @@
  mdp:/Users/akashsinha/Qt/6.7.0/macos/lib/QtWidgets.framework/Versions/A/Headers/qwidget.h
  mdp:/Users/akashsinha/trial/build/Qt_6_7_0_for_macOS-Debug/video_player_testing_autogen/moc_predefs.h
  mdp:/Users/akashsinha/trial/videoprogressbarcontroller.h
-/Users/akashsinha/trial/encryptionhandler.h
-/Users/akashsinha/trial/mainwindow.cpp
- uic:./ui_mainwindow.h
 /Users/akashsinha/trial/mainwindow.h
  mmc:Q_OBJECT
  mdp:/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/Availability.h
@@ -1037,7 +1040,9 @@
  mdp:/Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimedia.framework/Versions/A/Headers/qvideosink.h
  mdp:/Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimedia.framework/Versions/A/Headers/qwavedecoder.h
  mdp:/Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimedia.framework/Versions/A/Headers/qwindowcapture.h
+ mdp:/Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimediaWidgets.framework/Versions/A/Headers/QGraphicsVideoItem
  mdp:/Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimediaWidgets.framework/Versions/A/Headers/QVideoWidget
+ mdp:/Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimediaWidgets.framework/Versions/A/Headers/qgraphicsvideoitem.h
  mdp:/Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimediaWidgets.framework/Versions/A/Headers/qtmultimediawidgetsexports.h
  mdp:/Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimediaWidgets.framework/Versions/A/Headers/qtmultimediawidgetsglobal.h
  mdp:/Users/akashsinha/Qt/6.7.0/macos/lib/QtMultimediaWidgets.framework/Versions/A/Headers/qvideowidget.h
@@ -1274,4 +1279,3 @@
 /Users/akashsinha/trial/encryptionhandler.cpp
 /Users/akashsinha/trial/circularbutton.cpp
 /Users/akashsinha/trial/main.cpp
-/Users/akashsinha/trial/videoprogressbarcontroller.cpp

@@ -14,10 +14,12 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
 FIND_PACKAGE( Qt6Multimedia REQUIRED )
 FIND_PACKAGE( Qt6MultimediaWidgets REQUIRED )
+find_package(Qt6UiTools REQUIRED)
 SET(QT_USE_QTMULTIMEDIA TRUE)
 SET(QT_USE_QTMULTIMEDIAWIDGETS TRUE)
 find_package(Qt6 REQUIRED COMPONENTS Multimedia)
 find_package(Qt6 REQUIRED COMPONENTS MultimediaWidgets)
+find_package(Qt6 REQUIRED COMPONENTS UiTools )
 
 add_library(cryptopp STATIC IMPORTED)
 #set_target_properties(LibCrypto PROPERTIES IMPORTED_LOCATION "libs/lib")
@@ -52,6 +54,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         NewDecription.h
         circularbutton.h circularbutton.cpp
         resources.qrc
+        controls_overlay.ui
+        fullscreencontrolhoverhandler.h fullscreencontrolhoverhandler.cpp
 
     )
 # Define target properties for Android with Qt 6 as:
@@ -75,6 +79,7 @@ endif()
 target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::Multimedia)
 target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::MultimediaWidgets)
+target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::UiTools)
 target_link_libraries(video_player_testing PRIVATE cryptopp)
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

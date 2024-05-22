@@ -3,6 +3,9 @@
 #define QT_MULTIMEDIAWIDGETS_LIB 1
 #define QT_MULTIMEDIA_LIB 1
 #define QT_NETWORK_LIB 1
+#define QT_OPENGLWIDGETS_LIB 1
+#define QT_OPENGL_LIB 1
+#define QT_UITOOLS_LIB 1
 #define QT_WIDGETS_LIB 1
 #define SIZEOF_DPTR (sizeof(void*))
 #define _LP64 1

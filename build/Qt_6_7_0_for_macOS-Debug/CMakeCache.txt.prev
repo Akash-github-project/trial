@@ -331,8 +331,20 @@ Qt6Multimedia_DIR:PATH=/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6Multimedia
 //The directory containing a CMake configuration file for Qt6Network.
 Qt6Network_DIR:PATH=/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6Network
 
+//The directory containing a CMake configuration file for Qt6OpenGLWidgets.
+Qt6OpenGLWidgets_DIR:PATH=/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGLWidgets
+
+//The directory containing a CMake configuration file for Qt6OpenGL.
+Qt6OpenGL_DIR:PATH=/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6OpenGL
+
 //The directory containing a CMake configuration file for Qt6Qt6Svg.
 Qt6Qt6Svg_DIR:PATH=Qt6Qt6Svg_DIR-NOTFOUND
+
+//The directory containing a CMake configuration file for Qt6UiPlugin.
+Qt6UiPlugin_DIR:PATH=/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiPlugin
+
+//The directory containing a CMake configuration file for Qt6UiTools.
+Qt6UiTools_DIR:PATH=/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6UiTools
 
 //The directory containing a CMake configuration file for Qt6WidgetsTools.
 Qt6WidgetsTools_DIR:PATH=/Users/akashsinha/Qt/6.7.0/macos/lib/cmake/Qt6WidgetsTools
