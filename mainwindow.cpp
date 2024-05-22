@@ -205,13 +205,11 @@ void MainWindow::on_pushButton_Volume_clicked()
     if (IS_Muted == false)
     {
         IS_Muted = true;
-        // ui->pushButton_Volume->setIcon(style()->standardIcon(QStyle::SP_MediaVolumeMuted));
         Player->audioOutput()->setMuted(true);
     }
     else
     {
         IS_Muted = false;
-        // ui->pushButton_Volume->setIcon(style()->standardIcon(QStyle::SP_MediaVolume));
         Player->audioOutput()->setMuted(false);
     }
 }
