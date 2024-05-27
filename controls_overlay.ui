@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>970</width>
-    <height>199</height>
+    <height>206</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -352,8 +352,8 @@ QPushButton {
              <widget class="QPushButton" name="fs_PushButton_Stop">
               <property name="minimumSize">
                <size>
-                <width>40</width>
-                <height>40</height>
+                <width>35</width>
+                <height>35</height>
                </size>
               </property>
               <property name="maximumSize">
@@ -447,7 +447,7 @@ border:1px solid black;</string>
                </widget>
               </item>
               <item>
-               <widget class="QSlider" name="horizontalSlider_Volume">
+               <widget class="QSlider" name="fs_HorizontalSlider_Volume">
                 <property name="maximumSize">
                  <size>
                   <width>90</width>

@@ -3,6 +3,7 @@
 
 #include "videoprogressbarcontroller.h"
 #include "encryptionhandler.h"
+#include "windoweventhandler.h"
 
 #include <QMainWindow>
 #include <QMediaPlayer>
@@ -16,6 +17,7 @@
 #include <QBuffer>
 #include <QDir>
 #include <QGraphicsVideoItem>
+#include <PlaybackRateHandler.h>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -37,8 +39,9 @@ public slots:
     void fullScreenChnaged(const QRectF &rect);
     void on_normal_button_pressed();
     void handlePlayPauseButtonState(QMediaPlayer::PlaybackState playbackState);
+    void handleVolumeChange(int volume);
+    void handleWindowModesTransitions(bool isFullScreen);
 private slots:
-
     void durationChanged(qint64 duration);
     void positionChanged(qint64 duration);
     
@@ -76,7 +79,7 @@ private slots:
 
     void on_pushButton_2x_clicked();
 
-    void on_pushButton_clicked();
+    void on_pushButton_full_screen_clicked();
 
 private:
     Ui::MainWindow *ui;
@@ -103,11 +106,12 @@ private:
     VideoProgressBarController *fsSeekbarController = nullptr;
     QStringList fileListToLoad = {"part1","part2","part3"};
     QString selectedDirectory;
-    QString videoFileChunkPattern = "encrypted_chunk_*.mp4";
+    QString videoFileChunkPattern = "encrypted_input*.mp4";
     qint64 sliderTime = -1;
     EncryptionHandler *handler = nullptr;
     QGraphicsTextItem *watermarkItem = nullptr;
     QMetaObject::Connection seekbarConnection ;
+    PlaybackRateHandler *playbackRateHandler;
     const int timeLimit = 120;
     int fileCount = 0;
     int extraSeekValue = -1;
@@ -119,26 +123,70 @@ private:
      QPushButton *fsTenSecBackward = nullptr;
      QPushButton *fsNormalButton = nullptr;
      QPushButton *fsSpeed1x = nullptr;
+     QPushButton *fsSpeed1p2x = nullptr;
+     QPushButton *fsSpeed1p5x = nullptr;
      QPushButton *fsSpeed2x = nullptr;
-     QPushButton *fsSpeed3x = nullptr;
-     QPushButton *fsSpeed4x = nullptr;
      QSlider *fsSeekbar = nullptr;
+     QSlider *fsSeekbarVolume = nullptr;
      QLabel *fsCurrentTime = nullptr;
      QLabel *fsTotalTime = nullptr;
      QMetaObject::Connection fsSeekbarConnection;
+     QMetaObject::Connection fsSeekbarForwardBackwardConnection;
      QWidget *controls;
+     WindowEventHandler *fullScreenEventHandler;
      bool mediaStopped = false;
-    /////////////////
+     int oldHeight = 0;
+     int oldWidth = 0;
+     /////////////////
+     /// \brief updateDuration
+     /// \param Duration
+     ///
     void updateDuration(qint64 Duration);
     void loadParticalarChunk(int videoIndex, int extraSeek);
     void jumpToPosition(int secondToJump);
     void openParticularChunk(QByteArray byteData);
+    void onPlaybackRateChanged(float playbackRate);
+    QString pauseButtonStyle =
+                "QPushButton {"
+                "    border: none;"
+                "    background-image: url(://pause_button);"
+                "    background-repeat: no-repeat;"
+                "    background-position: center;"
+                "}";
+
+    QString playButtonStyle =
+                "QPushButton {"
+                "    border: none;"
+                "    background-image: url(://play_button);"
+                "    background-repeat: no-repeat;"
+                "    background-position: center;"
+                "}";
+    qint64 lastDisplayTime = 0;
+    void windowStateChange(MainWindow *, int, MainWindow *);
+
+    void handleUserManualFullScreen();
+    void seekBackward(long oldTime);
 protected:
     void paintEvent(QPaintEvent *) override {
         QPainter p{this};
         p.fillRect(rect(), {100, 100, 100, 128});
         p.setPen({0, 200, 255});
         p.drawText(rect(), "Loading...", Qt::AlignHCenter | Qt::AlignVCenter);
+    }
+
+    void changeEvent(QEvent *event) override {
+        if (event->type() == QEvent::WindowStateChange) {
+            if (this->windowState() & Qt::WindowFullScreen) {
+                qDebug() << "Window maximized";
+                // Handle maximized state
+                handleUserManualFullScreen();
+            } else if (this->windowState() == Qt::WindowNoState) {
+                qDebug() << "Window returned to normal state";
+                // Handle normal state
+
+            }
+        }
+        QMainWindow::changeEvent(event);
     }
 };
 #endif // MAINWINDOW_H

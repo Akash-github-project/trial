@@ -56,6 +56,10 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         resources.qrc
         controls_overlay.ui
         fullscreencontrolhoverhandler.h fullscreencontrolhoverhandler.cpp
+        playbackratehandler.h playbackratehandler.cpp
+        windoweventhandler.h windoweventhandler.cpp
+        CustomGraphicsView.h
+        CustomGraphicsView.cpp
 
     )
 # Define target properties for Android with Qt 6 as:

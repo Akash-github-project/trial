@@ -26,6 +26,9 @@ public:
     void moveSlider(int moveTo);
     int getSliderPosition();
     int getValue();
+    long long extraSeek = 0;
+    bool blocked = false;
+    long oldTime = 0;
 
 
     //debounceing
@@ -38,13 +41,18 @@ public:
     QSlider *horizontalSlider_Duration;
     void updateMaxLimit(qint64 maxDuration, int videoCount);
     void jumpInstantly(QObject *parent);
+    void scheduleSeek(long long seek);
+    void setupSeekTimer(QObject *parent,long oldTime);
 private slots:
     void onSeekbarDebounceTimerEnd();
+    void onSeekbarSecondsTimerEnd();
 signals:
     void onSeekbarStopedSliding();
+    void onSeekbarSecondsTimerEndSliding(long oldTime);
 
 private:
     QTimer *debounceTimer = nullptr;
+    QTimer *seekDebounceTimer = nullptr;
     int currentIndex = 0;
     int videosCount = 0;
     qint64 videoCompleteDuration = 0;

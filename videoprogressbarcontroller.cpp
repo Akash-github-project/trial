@@ -27,7 +27,9 @@ void VideoProgressBarController::resetSliderTime(){
 
 //
 void VideoProgressBarController::moveSlider(int moveTo){
-    horizontalSlider_Duration->setValue(moveTo);
+    if(blocked == false){
+        horizontalSlider_Duration->setValue(moveTo);
+    }
 }
 
 void VideoProgressBarController::setCurrentIndex(int index){
@@ -47,8 +49,7 @@ void VideoProgressBarController::updateMaxLimit(qint64 maxDuration,int videosCou
     horizontalSlider_Duration->update();
 }
 
-void VideoProgressBarController::setupTimer(QObject *parent){
-    if(jumpedJustNow){
+void VideoProgressBarController::setupTimer(QObject *parent){ if(jumpedJustNow){
         jumpedJustNow = false;
         return;
     }
@@ -81,6 +82,26 @@ void  VideoProgressBarController::jumpInstantly(QObject *parent){
     qDebug()<<"setuped jump instantly";
 }
 
+void VideoProgressBarController::setupSeekTimer(QObject *parent,long oldTime){
+    this->oldTime = oldTime;
+    if(seekDebounceTimer == nullptr){
+        seekDebounceTimer =  new QTimer(parent);
+        seekDebounceTimer->setSingleShot(true);
+        seekDebounceTimer->setInterval(400);
+        connect(seekDebounceTimer,&QTimer::timeout,this,&VideoProgressBarController::onSeekbarSecondsTimerEnd);
+        seekDebounceTimer->start();
+    }else {
+        seekDebounceTimer->stop();
+        seekDebounceTimer->setSingleShot(true);
+        seekDebounceTimer->start(400);
+    }
+    qDebug()<<"setuped timer";
+}
+
+void VideoProgressBarController::onSeekbarSecondsTimerEnd(){
+    emit onSeekbarSecondsTimerEndSliding(oldTime);
+}
+
 void VideoProgressBarController::onSeekbarDebounceTimerEnd(){
     qDebug()<<"emitted";
     emit onSeekbarStopedSliding();
@@ -91,4 +112,8 @@ int VideoProgressBarController::getValue(){
 }
 int VideoProgressBarController::getSliderPosition(){
     return horizontalSlider_Duration->sliderPosition();
+}
+
+void VideoProgressBarController::scheduleSeek(long long seek){
+    extraSeek = seek;
 }
