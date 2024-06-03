@@ -24,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->horizontalSlider_Volume->setMinimum(0);
     ui->horizontalSlider_Volume->setMaximum(100);
-    ui->horizontalSlider_Volume->setValue(40);
+    ui->horizontalSlider_Volume->setValue(10);
 
     Player->setAudioOutput(audioOutput);
     Player->audioOutput()->setVolume(ui->horizontalSlider_Volume->value() / 100.0f);
@@ -45,7 +45,7 @@ MainWindow::MainWindow(QWidget *parent)
     seekbarConnection = connect(seekbarController,&VideoProgressBarController::onSeekbarStopedSliding,this,&MainWindow::onSliderStop);
     connect(ui->horizontalSlider_Duration,&QSlider::sliderReleased,this,&MainWindow::on_horizontalSlider_Duration_sliderMoved);
     connect(ui->horizontalSlider_Duration,&QSlider::sliderPressed,this,&MainWindow::slderClicked);
-    connect(scene, &QGraphicsScene::sceneRectChanged,this,&MainWindow::fullScreenChnaged);
+    //connect(scene, &QGraphicsScene::sceneRectChanged,this,&MainWindow::fullScreenChnaged);
     connect(ui->horizontalSlider_Volume,&QSlider::valueChanged,this,&MainWindow::handleVolumeChange);
     connect(playbackRateHandler,&PlaybackRateHandler::playbackRateChanged,this,&MainWindow::onPlaybackRateChanged);
     handler = new EncryptionHandler();
@@ -141,7 +141,6 @@ void MainWindow::makeButtonRound(QPushButton*  button){
 MainWindow::~MainWindow()
 {
     delete ui;
-    delete buffer;
 }
 
 void MainWindow::durationChanged(qint64 duration)
@@ -155,7 +154,11 @@ void MainWindow::durationChanged(qint64 duration)
 
 void MainWindow::positionChanged(qint64 duration)
 {
-    qint64 moveTo =  (currentIndex * timeLimit) + duration / 1000;
+    qDebug()<<" duration"<<duration;
+    qDebug()<<"currentIndex"<<currentIndex;
+    qDebug()<<"timelimit"<<timeLimit;
+    qint64 moveTo = (currentIndex * timeLimit) + (qint64)floor(duration / 1000.0) ;
+    qDebug()<<"move to "<<moveTo;
     if(IS_FULL_SCREEN && fsSeekbar != nullptr){
         if(!fsSeekbar->isSliderDown()) {
             fsSeekbarController->moveSlider(moveTo);
@@ -178,10 +181,13 @@ void MainWindow::positionChanged(qint64 duration)
 void MainWindow::updateDuration(qint64 Duration)
 {
     qint64 fullVideoDurtaion = fileCount * timeLimit;
+    int minuteRatio = 1;
     if (Duration || fullVideoDurtaion)
     {
-        QTime CurrentTime((Duration / 3600) % (timeLimit / 2), (Duration / 60) % (timeLimit /2), Duration % (timeLimit /2), (Duration * 1000) % 1000);
-        QTime TotalTime((fullVideoDurtaion / 3600) % (timeLimit / 2), (fullVideoDurtaion / 60) % (timeLimit /2), fullVideoDurtaion % (timeLimit/2), (fullVideoDurtaion * 1000) % 1000);
+        QTime CurrentTime((Duration / 3600) % (timeLimit / minuteRatio), (Duration / 60) % (timeLimit /minuteRatio), Duration % (timeLimit /minuteRatio), (Duration * 1000) % 1000);
+        QTime TotalTime((fullVideoDurtaion / 3600) % (timeLimit / minuteRatio), (fullVideoDurtaion / 60) % (timeLimit /minuteRatio), fullVideoDurtaion % (timeLimit/minuteRatio), (fullVideoDurtaion * 1000) % 1000);
+        qDebug()<<CurrentTime<<"current time";
+        qDebug()<<TotalTime<<"total time";
         QString Format ="";
         if (fullVideoDurtaion > 3600) Format = "hh:mm:ss";
         else Format = "mm:ss";
@@ -382,11 +388,16 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
     }
 
 
-     if(status != QMediaPlayer::MediaStatus::EndOfMedia){
+    if((Player->position() / 1000) % timeLimit != 0 && Player->position() != 0){
         return;
-    } else {
+    }else {
         currentIndex++;
     }
+    //  if(status != QMediaPlayer::MediaStatus::EndOfMedia){
+    //     return;
+    // } else {
+    //     currentIndex++;
+    // }
 
     if(fileCount <= currentIndex) return;
     else qDebug() << "passed 2st test" << currentIndex;
@@ -402,6 +413,8 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
     QByteArray videoArray = file.readAll();
     file.close(); // Close the file after reading
     openParticularChunk(videoArray);
+    Player->pause();
+    Player->play();
 
 }
 
@@ -474,9 +487,6 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
     QByteArray videoArray = file.readAll();
     file.close(); // Close the file after reading
     openParticularChunk(videoArray);
-    while(!Player->isSeekable()){
-
-    }
     Player->setPosition(extraSeek * 1000);
 
  }

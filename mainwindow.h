@@ -112,7 +112,7 @@ private:
     QGraphicsTextItem *watermarkItem = nullptr;
     QMetaObject::Connection seekbarConnection ;
     PlaybackRateHandler *playbackRateHandler;
-    const int timeLimit = 120;
+    const int timeLimit = 60;
     int fileCount = 0;
     int extraSeekValue = -1;
     ///////////// full screen controls

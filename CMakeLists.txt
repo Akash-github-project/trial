@@ -60,6 +60,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         windoweventhandler.h windoweventhandler.cpp
         CustomGraphicsView.h
         CustomGraphicsView.cpp
+        aes_crypto.h aes_crypto.cpp
 
     )
 # Define target properties for Android with Qt 6 as:
