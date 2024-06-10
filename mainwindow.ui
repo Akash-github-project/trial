@@ -254,6 +254,9 @@ QSlider::add-page:horizontal
                  <kerning>true</kerning>
                 </font>
                </property>
+               <property name="styleSheet">
+                <string notr="true">padding:10px;</string>
+               </property>
                <property name="text">
                 <string>Playback Speed</string>
                </property>
@@ -350,7 +353,7 @@ QSlider::add-page:horizontal
                  </property>
                  <property name="sizeHint" stdset="0">
                   <size>
-                   <width>40</width>
+                   <width>30</width>
                    <height>20</height>
                   </size>
                  </property>
@@ -358,10 +361,16 @@ QSlider::add-page:horizontal
                </item>
                <item alignment="Qt::AlignVCenter">
                 <widget class="QPushButton" name="pushButton_Seek_Backward">
+                 <property name="minimumSize">
+                  <size>
+                   <width>36</width>
+                   <height>36</height>
+                  </size>
+                 </property>
                  <property name="maximumSize">
                   <size>
-                   <width>35</width>
-                   <height>35</height>
+                   <width>40</width>
+                   <height>40</height>
                   </size>
                  </property>
                  <property name="styleSheet">
@@ -374,6 +383,9 @@ QPushButton {
                  </property>
                  <property name="text">
                   <string/>
+                 </property>
+                 <property name="shortcut">
+                  <string>Left</string>
                  </property>
                 </widget>
                </item>
@@ -409,14 +421,23 @@ QPushButton {
                  <property name="text">
                   <string/>
                  </property>
+                 <property name="shortcut">
+                  <string>Space</string>
+                 </property>
                 </widget>
                </item>
                <item alignment="Qt::AlignVCenter">
                 <widget class="QPushButton" name="pushButton_Seek_Forward">
+                 <property name="minimumSize">
+                  <size>
+                   <width>36</width>
+                   <height>36</height>
+                  </size>
+                 </property>
                  <property name="maximumSize">
                   <size>
-                   <width>35</width>
-                   <height>35</height>
+                   <width>40</width>
+                   <height>40</height>
                   </size>
                  </property>
                  <property name="styleSheet">
@@ -430,6 +451,15 @@ QPushButton {
                  <property name="text">
                   <string/>
                  </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>36</width>
+                   <height>36</height>
+                  </size>
+                 </property>
+                 <property name="shortcut">
+                  <string>Right</string>
+                 </property>
                 </widget>
                </item>
                <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
@@ -439,10 +469,10 @@ QPushButton {
                    <number>10</number>
                   </property>
                   <property name="topMargin">
-                   <number>32</number>
+                   <number>15</number>
                   </property>
-                  <item>
-                   <widget class="QPushButton" name="pushButton_Stop">
+                  <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
+                   <widget class="QFrame" name="verticalFrame">
                     <property name="minimumSize">
                      <size>
                       <width>40</width>
@@ -451,33 +481,75 @@ QPushButton {
                     </property>
                     <property name="maximumSize">
                      <size>
-                      <width>35</width>
-                      <height>35</height>
+                      <width>16777215</width>
+                      <height>14040440</height>
                      </size>
                     </property>
-                    <property name="styleSheet">
-                     <string notr="true">background-color:#FFFFFF;
+                    <layout class="QVBoxLayout" name="verticalLayout_8">
+                     <property name="spacing">
+                      <number>2</number>
+                     </property>
+                     <property name="leftMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="topMargin">
+                      <number>10</number>
+                     </property>
+                     <property name="rightMargin">
+                      <number>0</number>
+                     </property>
+                     <property name="bottomMargin">
+                      <number>0</number>
+                     </property>
+                     <item>
+                      <widget class="QPushButton" name="pushButton_Stop">
+                       <property name="minimumSize">
+                        <size>
+                         <width>32</width>
+                         <height>32</height>
+                        </size>
+                       </property>
+                       <property name="maximumSize">
+                        <size>
+                         <width>32</width>
+                         <height>32</height>
+                        </size>
+                       </property>
+                       <property name="styleSheet">
+                        <string notr="true">background-color:#FFFFFF;
 border:1px solid black;</string>
-                    </property>
-                    <property name="text">
-                     <string/>
-                    </property>
-                   </widget>
-                  </item>
-                  <item alignment="Qt::AlignHCenter">
-                   <widget class="QLabel" name="label_7">
-                    <property name="maximumSize">
-                     <size>
-                      <width>30</width>
-                      <height>15</height>
-                     </size>
-                    </property>
-                    <property name="text">
-                     <string>Stop</string>
-                    </property>
-                    <property name="margin">
-                     <number>0</number>
-                    </property>
+                       </property>
+                       <property name="text">
+                        <string/>
+                       </property>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QLabel" name="label_7">
+                       <property name="minimumSize">
+                        <size>
+                         <width>0</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                       <property name="maximumSize">
+                        <size>
+                         <width>32</width>
+                         <height>20</height>
+                        </size>
+                       </property>
+                       <property name="text">
+                        <string>Stop</string>
+                       </property>
+                       <property name="alignment">
+                        <set>Qt::AlignCenter</set>
+                       </property>
+                       <property name="margin">
+                        <number>0</number>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
                    </widget>
                   </item>
                  </layout>
@@ -490,7 +562,7 @@ border:1px solid black;</string>
                  </property>
                  <property name="sizeHint" stdset="0">
                   <size>
-                   <width>40</width>
+                   <width>30</width>
                    <height>20</height>
                   </size>
                  </property>
@@ -512,8 +584,11 @@ border:1px solid black;</string>
                 </property>
                 <item>
                  <layout class="QVBoxLayout" name="verticalLayout_6">
+                  <property name="spacing">
+                   <number>1</number>
+                  </property>
                   <property name="topMargin">
-                   <number>20</number>
+                   <number>16</number>
                   </property>
                   <item>
                    <layout class="QHBoxLayout" name="horizontalLayout_6">
@@ -522,17 +597,23 @@ border:1px solid black;</string>
                     </property>
                     <item>
                      <widget class="QLabel" name="label_2">
+                      <property name="minimumSize">
+                       <size>
+                        <width>30</width>
+                        <height>30</height>
+                       </size>
+                      </property>
                       <property name="maximumSize">
                        <size>
-                        <width>23</width>
-                        <height>23</height>
+                        <width>30</width>
+                        <height>30</height>
                        </size>
                       </property>
                       <property name="text">
                        <string/>
                       </property>
                       <property name="pixmap">
-                       <pixmap resource="resources.qrc">:/volume-high</pixmap>
+                       <pixmap resource="resources.qrc">:/volume-low</pixmap>
                       </property>
                       <property name="margin">
                        <number>0</number>
@@ -541,9 +622,15 @@ border:1px solid black;</string>
                     </item>
                     <item>
                      <widget class="QSlider" name="horizontalSlider_Volume">
+                      <property name="minimumSize">
+                       <size>
+                        <width>60</width>
+                        <height>0</height>
+                       </size>
+                      </property>
                       <property name="maximumSize">
                        <size>
-                        <width>90</width>
+                        <width>100</width>
                         <height>16777215</height>
                        </size>
                       </property>
@@ -560,17 +647,23 @@ border:1px solid black;</string>
                     </item>
                     <item>
                      <widget class="QLabel" name="label">
+                      <property name="minimumSize">
+                       <size>
+                        <width>30</width>
+                        <height>30</height>
+                       </size>
+                      </property>
                       <property name="maximumSize">
                        <size>
-                        <width>23</width>
-                        <height>23</height>
+                        <width>30</width>
+                        <height>30</height>
                        </size>
                       </property>
                       <property name="text">
                        <string/>
                       </property>
                       <property name="pixmap">
-                       <pixmap resource="resources.qrc">:/volume-low</pixmap>
+                       <pixmap resource="resources.qrc">:/volume-high</pixmap>
                       </property>
                      </widget>
                     </item>
@@ -578,11 +671,23 @@ border:1px solid black;</string>
                   </item>
                   <item alignment="Qt::AlignHCenter">
                    <widget class="QLabel" name="label_6">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>25</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>16777215</width>
+                      <height>30</height>
+                     </size>
+                    </property>
                     <property name="text">
                      <string>Volume</string>
                     </property>
                     <property name="margin">
-                     <number>5</number>
+                     <number>7</number>
                     </property>
                    </widget>
                   </item>
@@ -654,7 +759,7 @@ QPushButton {
      <x>0</x>
      <y>0</y>
      <width>980</width>
-     <height>37</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuSelect_Video_File">

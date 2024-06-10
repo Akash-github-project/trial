@@ -24,7 +24,7 @@ signals:
 protected:
     void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override {
         controlledWidget->show();
-        controlledWidget->setOpacity(0.5f);
+        controlledWidget->setOpacity(0.86f);
         QGraphicsRectItem::hoverEnterEvent(event);
     }
 

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>970</width>
-    <height>206</height>
+    <height>224</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -161,6 +161,9 @@ QSlider::add-page:horizontal
            <kerning>true</kerning>
           </font>
          </property>
+         <property name="styleSheet">
+          <string notr="true">padding:10px;</string>
+         </property>
          <property name="text">
           <string>Playback Speed</string>
          </property>
@@ -265,10 +268,16 @@ QSlider::add-page:horizontal
          </item>
          <item alignment="Qt::AlignVCenter">
           <widget class="QPushButton" name="fs_PushButton_Seek_Backward">
+           <property name="minimumSize">
+            <size>
+             <width>36</width>
+             <height>36</height>
+            </size>
+           </property>
            <property name="maximumSize">
             <size>
-             <width>35</width>
-             <height>35</height>
+             <width>40</width>
+             <height>40</height>
             </size>
            </property>
            <property name="styleSheet">
@@ -281,6 +290,9 @@ QPushButton {
            </property>
            <property name="text">
             <string/>
+           </property>
+           <property name="shortcut">
+            <string>Left</string>
            </property>
           </widget>
          </item>
@@ -316,14 +328,23 @@ QPushButton {
            <property name="text">
             <string/>
            </property>
+           <property name="shortcut">
+            <string>Space</string>
+           </property>
           </widget>
          </item>
          <item alignment="Qt::AlignVCenter">
           <widget class="QPushButton" name="fs_PushButton_Seek_Forward">
+           <property name="minimumSize">
+            <size>
+             <width>36</width>
+             <height>36</height>
+            </size>
+           </property>
            <property name="maximumSize">
             <size>
-             <width>35</width>
-             <height>35</height>
+             <width>40</width>
+             <height>40</height>
             </size>
            </property>
            <property name="styleSheet">
@@ -331,11 +352,15 @@ QPushButton {
 QPushButton {
   border-image: url(:/ten-sec-forward);
   height:36px;
+  width:36px;
 }
 </string>
            </property>
            <property name="text">
             <string/>
+           </property>
+           <property name="shortcut">
+            <string>Right</string>
            </property>
           </widget>
          </item>
@@ -373,10 +398,16 @@ border:1px solid black;</string>
             </item>
             <item alignment="Qt::AlignHCenter">
              <widget class="QLabel" name="label_7">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>25</height>
+               </size>
+              </property>
               <property name="maximumSize">
                <size>
                 <width>30</width>
-                <height>15</height>
+                <height>25</height>
                </size>
               </property>
               <property name="text">
@@ -418,82 +449,129 @@ border:1px solid black;</string>
            <number>6</number>
           </property>
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_6">
-            <property name="topMargin">
-             <number>20</number>
+           <widget class="QFrame" name="">
+            <property name="maximumSize">
+             <size>
+              <width>16777215</width>
+              <height>120</height>
+             </size>
             </property>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_6">
-              <property name="spacing">
-               <number>10</number>
-              </property>
-              <item>
-               <widget class="QLabel" name="label_2">
-                <property name="maximumSize">
-                 <size>
-                  <width>23</width>
-                  <height>23</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="pixmap">
-                 <pixmap resource="resources.qrc">:/volume-high</pixmap>
-                </property>
-                <property name="margin">
-                 <number>0</number>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QSlider" name="fs_HorizontalSlider_Volume">
-                <property name="maximumSize">
-                 <size>
-                  <width>90</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">QSlider::sub-page:horizontal {
+            <layout class="QVBoxLayout" name="verticalLayout_6">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="sizeConstraint">
+              <enum>QLayout::SetDefaultConstraint</enum>
+             </property>
+             <property name="topMargin">
+              <number>30</number>
+             </property>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_6">
+               <property name="spacing">
+                <number>10</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="label_2">
+                 <property name="minimumSize">
+                  <size>
+                   <width>30</width>
+                   <height>30</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>30</width>
+                   <height>30</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="pixmap">
+                  <pixmap resource="resources.qrc">:/volume-high</pixmap>
+                 </property>
+                 <property name="margin">
+                  <number>0</number>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QSlider" name="fs_HorizontalSlider_Volume">
+                 <property name="minimumSize">
+                  <size>
+                   <width>60</width>
+                   <height>0</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>90</width>
+                   <height>16777215</height>
+                  </size>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true">QSlider::sub-page:horizontal {
 	background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:0, y2:1, stop:0 rgba(255, 255, 255, 0), stop:0.344828 rgba(2, 2, 2, 0), stop:0.359606 rgba(30, 255, 247, 255), stop:0.635468 rgba(0, 227, 255, 255), stop:0.64532 rgba(255, 255, 0, 0), stop:0.871921 rgba(255, 255, 0, 0));
 }
 </string>
-                </property>
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QLabel" name="label">
-                <property name="maximumSize">
-                 <size>
-                  <width>23</width>
-                  <height>23</height>
-                 </size>
-                </property>
-                <property name="text">
-                 <string/>
-                </property>
-                <property name="pixmap">
-                 <pixmap resource="resources.qrc">:/volume-low</pixmap>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item alignment="Qt::AlignHCenter">
-             <widget class="QLabel" name="label_6">
-              <property name="text">
-               <string>Volume</string>
-              </property>
-              <property name="margin">
-               <number>5</number>
-              </property>
-             </widget>
-            </item>
-           </layout>
+                 </property>
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QLabel" name="label">
+                 <property name="minimumSize">
+                  <size>
+                   <width>30</width>
+                   <height>30</height>
+                  </size>
+                 </property>
+                 <property name="maximumSize">
+                  <size>
+                   <width>30</width>
+                   <height>30</height>
+                  </size>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="pixmap">
+                  <pixmap resource="resources.qrc">:/volume-low</pixmap>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item alignment="Qt::AlignHCenter">
+              <widget class="QLabel" name="label_6">
+               <property name="maximumSize">
+                <size>
+                 <width>16777215</width>
+                 <height>35</height>
+                </size>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">margin-top:20px;</string>
+               </property>
+               <property name="frameShape">
+                <enum>QFrame::NoFrame</enum>
+               </property>
+               <property name="text">
+                <string>Volume</string>
+               </property>
+               <property name="margin">
+                <number>0</number>
+               </property>
+               <property name="indent">
+                <number>0</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
           </item>
           <item>
            <spacer name="horizontalSpacer_3">
@@ -514,7 +592,7 @@ border:1px solid black;</string>
              <number>5</number>
             </property>
             <property name="topMargin">
-             <number>20</number>
+             <number>30</number>
             </property>
             <item alignment="Qt::AlignHCenter">
              <widget class="QPushButton" name="normal_screen_button">
@@ -534,6 +612,18 @@ QPushButton {
             </item>
             <item alignment="Qt::AlignHCenter">
              <widget class="QLabel" name="label_5">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>25</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>16777215</width>
+                <height>25</height>
+               </size>
+              </property>
               <property name="text">
                <string>Fullscreen</string>
               </property>

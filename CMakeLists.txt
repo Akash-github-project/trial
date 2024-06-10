@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 3.5)
 
 project(video_player_testing VERSION 0.1 LANGUAGES CXX)
-
+#cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -61,6 +62,11 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         CustomGraphicsView.h
         CustomGraphicsView.cpp
         aes_crypto.h aes_crypto.cpp
+        seekbarprogresscontroller.h seekbarprogresscontroller.cpp
+        reddotrecording.h reddotrecording.cpp
+        screenflashlayer.h screenflashlayer.cpp
+        patternemitter.h patternemitter.cpp
+        #fullscreenviews.h fullscreenviews.cpp
 
     )
 # Define target properties for Android with Qt 6 as:
@@ -86,6 +92,11 @@ target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::Multim
 target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::MultimediaWidgets)
 target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::UiTools)
 target_link_libraries(video_player_testing PRIVATE cryptopp)
+#add_definitions(/EHsc)  # Optional for exception handling
+
+if(WIN32)
+  include_directories(<Windows.h>)  # Include for SetWindowDisplayAffinity
+endif(WIN32)
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.
