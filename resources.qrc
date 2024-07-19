@@ -9,5 +9,14 @@
         <file>play_button</file>
         <file>normal_screen</file>
         <file>controls_overlay.ui</file>
+        <file>arrow-next</file>
+        <file>vajiram-logo</file>
+        <file>arrow-left</file>
+        <file>activity_history_unselected</file>
+        <file>course_unselected</file>
+        <file>device_registration_unselected</file>
+        <file>home_selected</file>
+        <file>my_account_unselected</file>
+        <file>notification_unselected</file>
     </qresource>
 </RCC>

@@ -6,6 +6,7 @@
 #include "windoweventhandler.h"
 #include "reddotrecording.h"
 #include "screenflashlayer.h"
+#include "apimanager.h"
 
 #include <QMainWindow>
 #include <QMediaPlayer>
@@ -38,7 +39,8 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    //MainWindow(QWidget *parent = nullptr);
+    MainWindow(QString filePath,QString token,QString course_id,QString video_id,QWidget *parent = nullptr);
     ~MainWindow();
 
     // void makeButtonRound(QPushButton* button);
@@ -82,10 +84,17 @@ public slots:
     void on_pushButton_1p5x_clicked();
     void on_pushButton_2x_clicked();
     void on_pushButton_full_screen_clicked();
+    void onKeyFetchCompleted(QList<VideoData> keyList);
 
 private:
+    ApiManager * manager;
+    QList<VideoData> videoItemList;
+    QString video_id = "";
+    QString course_id = "";
+    QString token = "";
     Ui::MainWindow *ui;
     QVideoWidget *Video = nullptr;
+    bool videoStarted = false;
     QGraphicsWidget *GraphicsWidget = nullptr;
     //FullScreenViews  *fullScreenViews = nullptr;
     SeekbarProgressController *seekbarNewController;
@@ -98,9 +107,10 @@ private:
     bool isChanging = false;
     int currentIndex = 0;
     QString FileName;
+    QString folderPath = nullptr;
     VideoProgressBarController *seekbarController = nullptr;
     QString selectedDirectory;
-    QString videoFileChunkPattern = "encrypted*.mp4";
+    QString videoFileChunkPattern = "*.enc";
     //QString videoFileChunkPattern = "encrypted_input*.mp4";
     qint64 sliderTime = -1;
     EncryptionHandler *handler = nullptr;
@@ -151,7 +161,7 @@ private:
     void updateDuration(qint64 Duration);
     void loadParticalarChunk(int videoIndex, int extraSeek);
     void jumpToPosition(int secondToJump);
-    void openParticularChunk(QByteArray byteData);
+    void openParticularChunk(QByteArray byteData,int videoIndex);
     void windowStateChange(MainWindow *, int, MainWindow *);
     void handleUserManualFullScreen();
     void seekBackward(long oldTime);
@@ -194,12 +204,14 @@ protected:
             }
             else if (this->windowState() == Qt::WindowNoState) {
                 qDebug() << "Window normal";
-                handleUserManualUnMaximize();
+                //handleUserManualUnMaximize();
                 // Handle normal state
 
             }
         }
         QMainWindow::changeEvent(event);
     }
+
+    bool event(QEvent *event) override;
 };
 #endif // MAINWINDOW_H

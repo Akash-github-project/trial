@@ -10,11 +10,7 @@
 #include <osrng.h>
 #include <filters.h>
 
-EncryptionHandler::EncryptionHandler() {
-    CryptoPP::byte keyData[] = { 0xba, 0xb2, 0xb9, 0xa7, 0xf4, 0x00, 0x83, 0x3d, 0x48, 0x94, 0x5f, 0xc3, 0x85, 0xf8, 0x45, 0x92,
-                      0x07, 0xe3, 0x97, 0x70, 0x44, 0xed, 0x72, 0x24, 0xb8, 0x29, 0xc5, 0x4c, 0x94, 0xeb, 0x91, 0x0f };
-    key.Assign(keyData, sizeof(keyData));
-}
+EncryptionHandler::EncryptionHandler() { }
 
 
 namespace fs = std::filesystem;
@@ -22,10 +18,10 @@ using namespace CryptoPP;
 
 
 
-std::vector<byte> EncryptionHandler::DecryptVideoToMemory(const QByteArray& inputData, const SecByteBlock& key) {
+std::vector<byte> EncryptionHandler::DecryptVideoToMemory(const QByteArray& inputData, const SecByteBlock& key,const SecByteBlock& iv) {
     // Read IV from the beginning of the input data
-    SecByteBlock iv(AES::BLOCKSIZE);
-    memcpy(iv.BytePtr(), inputData.constData(), iv.size());
+    //SecByteBlock iv(AES::BLOCKSIZE);
+    //memcpy(iv.BytePtr(), inputData.constData(), iv.size());
 
     // Initialize decryptor
     CBC_Mode<AES>::Decryption decryptor;
@@ -33,11 +29,25 @@ std::vector<byte> EncryptionHandler::DecryptVideoToMemory(const QByteArray& inpu
 
     // Decrypt the input data (excluding the IV) and store the data in memory
     ByteQueue byteQueue;
-    ArraySource(reinterpret_cast<const byte*>(inputData.constData() + iv.size()), inputData.size() - iv.size(), true,
-                new StreamTransformationFilter(decryptor,
-                                               new Redirector(byteQueue)
-                                               )
-                );
+    // ArraySource(reinterpret_cast<const byte*>(inputData.constData() + iv.size()), inputData.size() - iv.size(), true,
+    //             new StreamTransformationFilter(decryptor,
+    //                                            new Redirector(byteQueue)
+    //                                            )
+    //             );
+
+
+    /////
+
+    try {
+        ArraySource(reinterpret_cast<const byte*>(inputData.constData()),
+            inputData.size(),
+            true,
+            new StreamTransformationFilter(decryptor, new Redirector(byteQueue)));
+    }catch (Exception e){
+        qDebug()<<e.GetWhat();
+
+    }
+
 
     // Convert ByteQueue to std::vector<byte>
     std::vector<byte> decryptedData(byteQueue.MaxRetrievable());
@@ -46,35 +56,51 @@ std::vector<byte> EncryptionHandler::DecryptVideoToMemory(const QByteArray& inpu
     return decryptedData;
 }
 
-std::vector<byte> EncryptionHandler::DecryptVideoFromQByteArray(const QByteArray& byteArray, const SecByteBlock& key) {
-    return DecryptVideoToMemory(byteArray, key);
+std::vector<byte> EncryptionHandler::DecryptVideoFromQByteArray(const QByteArray& byteArray, const SecByteBlock& key,const SecByteBlock& iv) {
+    return DecryptVideoToMemory(byteArray, key,iv);
 }
 
 
-QByteArray EncryptionHandler::decryptFile(QByteArray byteArray) {
+QByteArray EncryptionHandler::decryptFile(QByteArray byteArray,VideoData vidItem) {
 
-    byte key[32] = {0xba, 0xb2, 0xb9, 0xa7, 0xf4, 0x00, 0x83, 0x3d, 0x48, 0x94, 0x5f, 0xc3, 0x85, 0xf8, 0x45, 0x92,
-                    0x07, 0xe3, 0x97, 0x70, 0x44, 0xed, 0x72, 0x24, 0xb8, 0x29, 0xc5, 0x4c, 0x94, 0xeb, 0x91, 0x0f};
+    std::vector<CryptoPP::byte> listOfKeys = hexStringToByteArray(vidItem.key.toStdString());
+    std::vector<CryptoPP::byte> listOfIv = hexStringToByteArray(vidItem.iv.toStdString());
+    CryptoPP::byte key[32] = {};
+    CryptoPP::byte iv[AES::BLOCKSIZE] = {};
+
+
+    std::copy(listOfKeys.begin(),listOfKeys.end(),key);
+    std::copy(listOfIv.begin(),listOfIv.end(),iv);
+
+    qDebug()<<*key;
+    qDebug()<<*iv;
+
     SecByteBlock keyBlock(key, sizeof(key));
-    std::vector<byte> decryptedData = DecryptVideoFromQByteArray(byteArray, keyBlock);
+    SecByteBlock ivBlock(iv,sizeof(iv));
+    std::vector<byte> decryptedData = DecryptVideoFromQByteArray(byteArray, keyBlock,ivBlock);
     // wite this data to file
     QByteArray* data = VectorToQByteArray( decryptedData );
     // qDebug()<<"writing file";
-    // QFile file("some_me_video.mp4");
-    // file.open(QIODevice::WriteOnly);
-    // file.write(*data);
-    // file.close();
-    // qDebug()<<"wrote the file";
     /////
     return *data;
 }
 
+// Function to convert a hex string to an unsigned char array
+std::vector<unsigned char> EncryptionHandler::hexStringToByteArray(const std::string &hexStr) {
+    if (hexStr.length() % 2 != 0) {
+        throw std::invalid_argument("Hex string must have an even number of characters");
+    }
 
+    std::vector<CryptoPP::byte> result;
+    result.reserve(hexStr.length() / 2);
 
-
-
-
-
+    for (size_t i = 0; i < hexStr.length(); i += 2) {
+        std::string byteString = hexStr.substr(i, 2);
+        unsigned char value = static_cast<CryptoPP::byte>(std::stoul(byteString, nullptr, 16));
+        result.push_back(value);
+    }
+    return result;
+}
 
 
 

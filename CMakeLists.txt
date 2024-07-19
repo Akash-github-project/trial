@@ -21,6 +21,7 @@ SET(QT_USE_QTMULTIMEDIAWIDGETS TRUE)
 find_package(Qt6 REQUIRED COMPONENTS Multimedia)
 find_package(Qt6 REQUIRED COMPONENTS MultimediaWidgets)
 find_package(Qt6 REQUIRED COMPONENTS UiTools )
+find_package(Qt6 REQUIRED COMPONENTS Network )
 
 add_library(cryptopp STATIC IMPORTED)
 #set_target_properties(LibCrypto PROPERTIES IMPORTED_LOCATION "libs/lib")
@@ -66,6 +67,15 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         reddotrecording.h reddotrecording.cpp
         screenflashlayer.h screenflashlayer.cpp
         patternemitter.h patternemitter.cpp
+        loginpage.h loginpage.cpp loginpage.ui
+        actionnavigationbutton.h actionnavigationbutton.cpp
+        clickableqframe.h clickableqframe.cpp
+        loginotpscreen.h loginotpscreen.cpp loginotpscreen.ui
+        onboardingwrapper.h onboardingwrapper.cpp onboardingwrapper.ui
+        registerdeviceconfirmation.h registerdeviceconfirmation.cpp registerdeviceconfirmation.ui
+        mainhomescreen.h mainhomescreen.cpp mainhomescreen.ui
+        apimanager.h apimanager.cpp
+
         #fullscreenviews.h fullscreenviews.cpp
 
     )
@@ -90,6 +100,7 @@ endif()
 target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::Multimedia)
 target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::MultimediaWidgets)
+target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::Network)
 target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::UiTools)
 target_link_libraries(video_player_testing PRIVATE cryptopp)
 #add_definitions(/EHsc)  # Optional for exception handling
