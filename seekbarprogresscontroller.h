@@ -20,13 +20,15 @@ public:
     void moveTo(qint64 secondsToJump);
     void markGettingDragged();
     void markDraggingEnded();
+
+public:
+    bool markMooving = false;
 private:
     QTimer* globalPlaybackTimer;
     qint64 currentVideoTimeInSeconds = -1;
     QMetaObject::Connection timerConnection;
     qint64 remainingTimeOnPause;
     bool wasPaused;
-    bool markMooving = false;
 signals:
     void timeMovedTo(qint64 currentTimeOfSeekbar);
 private slots:

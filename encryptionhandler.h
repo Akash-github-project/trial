@@ -24,6 +24,7 @@ public:
     std::vector<CryptoPP::byte> DecryptVideoFromQByteArray(const QByteArray &byteArray, const CryptoPP::SecByteBlock &key,const CryptoPP::SecByteBlock &iv);
     std::vector<CryptoPP::byte> DecryptVideoToMemory(const QByteArray &inputData, const CryptoPP::SecByteBlock &key,const CryptoPP::SecByteBlock &iv);
     std::vector<CryptoPP::byte> hexStringToByteArray(const std::string &hexStr);
+    bool writeByteArrayToFile(const QByteArray data, const QString &filePath);
 };
 
 #endif // ENCRYPTIONHANDLER_H

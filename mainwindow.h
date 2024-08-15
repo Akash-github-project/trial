@@ -40,7 +40,8 @@ class MainWindow : public QMainWindow
 
 public:
     //MainWindow(QWidget *parent = nullptr);
-    MainWindow(QString filePath,QString token,QString course_id,QString video_id,QWidget *parent = nullptr);
+    MainWindow(QString filePath,QString token,QString course_id,QString video_id,QString identifier,QWidget *parent = nullptr);
+
     ~MainWindow();
 
     // void makeButtonRound(QPushButton* button);
@@ -92,14 +93,18 @@ private:
     QString video_id = "";
     QString course_id = "";
     QString token = "";
+    QString identifier = "";
+    bool blockedForPiracy = false;
     Ui::MainWindow *ui;
+    QGuiApplication* guiInstance;
+    QCoreApplication* guiApp;
     QVideoWidget *Video = nullptr;
     bool videoStarted = false;
     QGraphicsWidget *GraphicsWidget = nullptr;
     //FullScreenViews  *fullScreenViews = nullptr;
     SeekbarProgressController *seekbarNewController;
     // Create a QGraphicsVideoItem
-    qint64 videoTimeArray[5] = {120929,120790,120256,118384,119675};
+    QList<int> videoTimeArray;
     qint64 mDuration;
     bool IS_Pause = true;
     bool IS_Muted = false;
@@ -111,7 +116,7 @@ private:
     VideoProgressBarController *seekbarController = nullptr;
     QString selectedDirectory;
     QString videoFileChunkPattern = "*.enc";
-    //QString videoFileChunkPattern = "encrypted_input*.mp4";
+    //QString videoFileChunkPattern = "encrypted*.mp4";
     qint64 sliderTime = -1;
     EncryptionHandler *handler = nullptr;
     QGraphicsTextItem *WATERMARK_TEXT = nullptr;
@@ -164,7 +169,7 @@ private:
     void openParticularChunk(QByteArray byteData,int videoIndex);
     void windowStateChange(MainWindow *, int, MainWindow *);
     void handleUserManualFullScreen();
-    void seekBackward(long oldTime);
+    void seekToRemainingTime(long oldTime);
     int getExtraSeek(int timeInSeconds, int indexToJump);
     void setupKeyboardShortcuts();
     void handleUserManualMaximized();
@@ -184,6 +189,7 @@ private:
         return QMainWindow::eventFilter(watched, event);
     }
     void disableScreenRecording();
+    void showWarningDialog();
 protected:
     void paintEvent(QPaintEvent *) override {
         QPainter p{this};

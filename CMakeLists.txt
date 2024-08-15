@@ -75,6 +75,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         registerdeviceconfirmation.h registerdeviceconfirmation.cpp registerdeviceconfirmation.ui
         mainhomescreen.h mainhomescreen.cpp mainhomescreen.ui
         apimanager.h apimanager.cpp
+        piracy_warning_modal.ui
+        warningdialog.h warningdialog.cpp warningdialog.ui
 
         #fullscreenviews.h fullscreenviews.cpp
 

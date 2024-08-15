@@ -6,6 +6,16 @@
 #include <QApplication>
 #include <QTimer>
 #include <QString>
+#include <QFile>
+#include <QTextStream>
+#include <QDateTime>
+#include <QtMessageHandler>
+#include <QFile>
+#include <QTextStream>
+#include <QDebug>
+
+
+//#define LOCAL true;
 
 namespace fs = std::filesystem;
 bool isValidPath(const std::string& path)
@@ -28,63 +38,114 @@ bool isValidPath(const std::string& path)
     }
 }
 
+void customMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    static QFile logFile("C:/Users/BharatCaller/application5.log");
+    if (!logFile.isOpen()) {
+        logFile.open(QIODevice::Append | QIODevice::Text);
+    }
+
+    QTextStream out(&logFile);
+    out << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz ") << " ";
+
+    switch (type) {
+    case QtDebugMsg:
+        out << "DEBUG: ";
+        break;
+    case QtInfoMsg:
+        out << "INFO: ";
+        break;
+    case QtWarningMsg:
+        out << "WARNING: ";
+        break;
+    case QtCriticalMsg:
+        out << "CRITICAL: ";
+        break;
+    case QtFatalMsg:
+        out << "FATAL: ";
+        break;
+    }
+
+    out << msg << Qt::endl;
+}
+
+QString accessNamedPipes(){
+    QFile pipe("\\\\.\\pipe\\testing");
+    if (!pipe.open(QIODevice::ReadOnly)) {
+        qDebug() << "Failed to open pipe.";
+        return QString("");
+    }
+
+    QTextStream stream(&pipe);
+    QString message = stream.readLine();
+    qDebug() << "Message from pipe:" << message;
+    return message;
+}
 
 
 
 int main(int argc, char *argv[])
 {
+    qInstallMessageHandler(customMessageHandler);
     QApplication a(argc, argv);
 
-    // if (argc != 3)
-    // {
-    //     std::cerr << "Usage: " << argv[0] << " <folder_path>" << std::endl;
-    //     return 1;
-    // }
+  #ifndef LOCAL
+    QString returnValue = accessNamedPipes();
+    QStringList listOfArgs = returnValue.split("#");
 
-    // std::string folderPath = argv[1];
+    if(listOfArgs.length() != 5) {
+        qDebug()<<"immproper number of arguments";
+        return 1;
+    }
 
-    // if (!isValidPath(folderPath))
-    // {
-    //     std::cerr << "Invalid or inaccessible folder path." << std::endl;
-    //     return 1;
-    // }
+    //qDebug()<<argv[1] << "," <<argv[2] << ", " << argv[3] << "," << argv[4] ;
+    std::string folderPath = listOfArgs[0].toStdString();
 
-    // // If the path is valid, proceed with further operations
-    // std::cout << "Folder path is valid: " << folderPath << std::endl;
+    if (!isValidPath(folderPath))
+    {
+        qDebug() << "Invalid or inaccessible folder path." << "count --" << argc;
+        return 1;
+    }
 
-    // // Example operation: Listing the contents of the directory
-    // try
-    // {
-    //     for (const auto& entry : fs::directory_iterator(folderPath))
-    //     {
-    //         std::cout << entry.path() << std::endl;
-    //     }
-    // }
-    // catch (const fs::filesystem_error& e)
-    // {
-    //     std::cerr << "Filesystem error during directory iteration: " << e.what() << std::endl;
-    //     return 1;
-    // }
-    // catch (const std::exception& e)
-    // {
-    //     std::cerr << "General error during directory iteration: " << e.what() << std::endl;
-    //     return 1;
-    // }
+    // If the path is valid, proceed with further operations
+    qDebug() << "Folder path is valid: " << folderPath ;
 
-    // const QString token = argv[2];
-    // const QString course_id = argv[3];
-    // const QString video_id = argv[4];
+    // Example operation: Listing the contents of the directory
+    try
+    {
+        for (const auto& entry : fs::directory_iterator(folderPath))
+        {
+            qDebug() << entry.path() ;
+        }
+    }
+    catch (const fs::filesystem_error& e)
+    {
+        qDebug() << "Filesystem error during directory iteration: " << e.what() ;
+        return 1;
+    }
+    catch (const std::exception& e)
+    {
+        qDebug() << "General error during directory iteration: " << e.what();
+        return 1;
+    }
 
+    const QString video_id = listOfArgs[1];
+    const QString token = listOfArgs[2];
+    const QString course_id = listOfArgs[3];
+    const QString identifier = listOfArgs[4];
+    QString filePath = QString::fromStdString(folderPath);
+  #endif
 
-    const QString token = "L0ttEO2cTeo5nyojuXVe3LxH9kNSkK";
-    const QString course_id = "66863639da8f59703445d9f2";
-    const QString video_id = "6686845dda8f5976e0d41568";
+  #ifdef LOCAL
+     const QString token = "SU3MILNFFAn8tAni5EFwdRblvMnzSi";
+     const QString course_id = "66863639da8f59703445d9f2d";
 
+     const QString video_id = "6686845dda8f5976e0d41568";
+     QString filePath = "C:/Users/BharatCaller/AppData/Roaming/VidSafe/com.companyname.vidsafeproject/Data/VidSafeExtracted/66868469da8f5976e34f87bc.zip";
+     const QString identifier = "8709031440";
+  #endif
 
-     //QString filePath = QString::fromStdString(folderPath);
-    QString filePath = "C:\\Users\\BharatCaller\\AppData\\Local\\Packages\\com.companyname.vidsafeproject_9zz4h110yvjzm\\LocalState\\VidSafeExtracted\\66868469da8f5976e34f87bc";
-
-    MainWindow w(filePath,token,course_id,video_id,nullptr);
+    MainWindow w(filePath,token,course_id,video_id,identifier,nullptr);
     w.show();
     return a.exec();
 }

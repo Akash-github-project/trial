@@ -15,12 +15,13 @@ void ApiManager::GetKeysForChunk(QString testToken,QString courseId,QString vide
     QString bearer = "Bearer ";
     QString tk = testToken;
     QString token = bearer + tk;
-    request.setRawHeader("Authorization",token.toUtf8());
+    qDebug()<<"debug:: latin " <<token.toLatin1();
+    request.setRawHeader("Authorization",token.toLatin1());
     QJsonObject json;
-
     json["course_id"] = courseId;
+    qDebug()<<"debug:: " << courseId;
     json["video_id"] = videoId;
-
+    qDebug()<<"debug:: " << videoId;
     QJsonDocument jsonDoc(json);
 
     // Convert QJsonDocument to QByteArray
@@ -40,8 +41,9 @@ void ApiManager::onFinished(QNetworkReply* reply) {
         //qDebug()<<object[""].toString();
         QJsonValue value = document.object().value("video_metadata");
         QJsonValue keys = value.toObject().value("metadata");
+        //qDebug()<<"hello---"<<keys.toString();
         QList<VideoData> resultOfParsing = parseVideoData(keys.toString());
-
+        qDebug()<<"Api request done";
         emit onKeyFetchFinished(resultOfParsing);
     } else {
         qDebug() << "Error:" << reply->errorString();
@@ -59,8 +61,10 @@ QList<VideoData> ApiManager::parseVideoData(const QString &data) {
     qDebug()<<trimmedData;
     QStringList segments = trimmedData.split(",");
 
+    //qDebug()<<"start data parsing == "<<segments;
     for (const QString &segment : segments) {
         QStringList parts = segment.trimmed().remove("'").split("|");
+        //qDebug()<< segments << "--segment--";
         if (parts.size() == 4) {
             auto tempDurationFirstPart = parts[0].trimmed().split(":").first().toStdString();
             auto tempDurationSecondPart = parts[0].trimmed().split(":").last().toStdString();
@@ -76,6 +80,7 @@ QList<VideoData> ApiManager::parseVideoData(const QString &data) {
             qDebug() << "Invalid segment format:" <<  parts.size();
         }
     }
+    qDebug()<<"end data parsing";
 
     return resultList;
 }

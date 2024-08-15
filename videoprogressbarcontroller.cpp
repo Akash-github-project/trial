@@ -50,45 +50,14 @@ void VideoProgressBarController::updateMaxLimit(qint64 maxDuration,int videosCou
 }
 
 void VideoProgressBarController::setupTimer(QObject *parent){
-    // if(jumpedJustNow){
-    //     jumpedJustNow = false;
-    //     return;
-    // }
     if(horizontalSlider_Duration->isSliderDown()){
         return;
     }
     emit onSeekbarStopedSliding();
-    // if(debounceTimer == nullptr){
-    //     debounceTimer =  new QTimer(parent);
-    //     debounceTimer->setSingleShot(true);
-    //     debounceTimer->setInterval(30);
-    //     connect(debounceTimer,&QTimer::timeout,this,&VideoProgressBarController::onSeekbarDebounceTimerEnd);
-    //     debounceTimer->start();
-    // }else {
-    //     debounceTimer->stop();
-    //     debounceTimer->setInterval(30);
-    //     debounceTimer->start(30);
-    // }
-
-    // qDebug()<<"setuped timer";
 }
 
 void  VideoProgressBarController::jumpInstantly(QObject *parent){
-    // if(horizontalSlider_Duration->isSliderDown()){
-    //     return;
-    // }
     emit onSeekbarStopedSliding();
-    // if(debounceTimer == nullptr){
-    //     debounceTimer =  new QTimer(parent);
-    //     debounceTimer->setSingleShot(true);
-    //     debounceTimer->setInterval(1);
-    //     connect(debounceTimer,&QTimer::timeout,this,&VideoProgressBarController::onSeekbarDebounceTimerEnd);
-    //     jumpedJustNow = true;
-    //     debounceTimer->start();
-    // }else {
-    //     debounceTimer->stop();
-    //     debounceTimer->start(1);
-    // }
     qDebug()<<"setuped jump instantly";
 }
 
@@ -105,7 +74,6 @@ void VideoProgressBarController::setupSeekTimer(QObject *parent,long oldTime){
         seekDebounceTimer->setSingleShot(true);
         seekDebounceTimer->start(400);
     }
-    // qDebug()<<"setuped timer";
 }
 
 void VideoProgressBarController::onSeekbarSecondsTimerEnd(){
@@ -114,7 +82,6 @@ void VideoProgressBarController::onSeekbarSecondsTimerEnd(){
 
 void VideoProgressBarController::onSeekbarDebounceTimerEnd(){
     qDebug()<<"emitted";
-    // emit onSeekbarStopedSliding();
 }
 
 int VideoProgressBarController::getValue(){

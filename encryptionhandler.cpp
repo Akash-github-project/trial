@@ -19,25 +19,12 @@ using namespace CryptoPP;
 
 
 std::vector<byte> EncryptionHandler::DecryptVideoToMemory(const QByteArray& inputData, const SecByteBlock& key,const SecByteBlock& iv) {
-    // Read IV from the beginning of the input data
-    //SecByteBlock iv(AES::BLOCKSIZE);
-    //memcpy(iv.BytePtr(), inputData.constData(), iv.size());
-
     // Initialize decryptor
     CBC_Mode<AES>::Decryption decryptor;
     decryptor.SetKeyWithIV(key, key.size(), iv);
-
     // Decrypt the input data (excluding the IV) and store the data in memory
     ByteQueue byteQueue;
-    // ArraySource(reinterpret_cast<const byte*>(inputData.constData() + iv.size()), inputData.size() - iv.size(), true,
-    //             new StreamTransformationFilter(decryptor,
-    //                                            new Redirector(byteQueue)
-    //                                            )
-    //             );
-
-
     /////
-
     try {
         ArraySource(reinterpret_cast<const byte*>(inputData.constData()),
             inputData.size(),
@@ -47,8 +34,6 @@ std::vector<byte> EncryptionHandler::DecryptVideoToMemory(const QByteArray& inpu
         qDebug()<<e.GetWhat();
 
     }
-
-
     // Convert ByteQueue to std::vector<byte>
     std::vector<byte> decryptedData(byteQueue.MaxRetrievable());
     byteQueue.Get(decryptedData.data(), decryptedData.size());
@@ -59,6 +44,31 @@ std::vector<byte> EncryptionHandler::DecryptVideoToMemory(const QByteArray& inpu
 std::vector<byte> EncryptionHandler::DecryptVideoFromQByteArray(const QByteArray& byteArray, const SecByteBlock& key,const SecByteBlock& iv) {
     return DecryptVideoToMemory(byteArray, key,iv);
 }
+
+
+bool EncryptionHandler::writeByteArrayToFile(const QByteArray data, const QString &filePath) {
+    QFile file("C:\\Users\\BharatCaller\\temp.mp4");
+
+    if (!file.open(QIODevice::ReadWrite)) {
+        qWarning() << "Failed to open file for writing:" << file.errorString();
+        return false;
+    }
+
+    qint64 bytesWritten = file.write(data);
+    if (bytesWritten == -1) {
+        qWarning() << "Failed to write data to file:" << file.errorString();
+        return false;
+    }
+
+    if (bytesWritten != data.size()) {
+        qWarning() << "Not all data was written to the file.";
+        return false;
+    }
+
+    file.close();
+    return true;
+}
+
 
 
 QByteArray EncryptionHandler::decryptFile(QByteArray byteArray,VideoData vidItem) {
@@ -82,6 +92,9 @@ QByteArray EncryptionHandler::decryptFile(QByteArray byteArray,VideoData vidItem
     QByteArray* data = VectorToQByteArray( decryptedData );
     // qDebug()<<"writing file";
     /////
+    writeByteArrayToFile(*data,vidItem.fileName);
+    ///
+
     return *data;
 }
 

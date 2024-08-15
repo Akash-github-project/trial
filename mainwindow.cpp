@@ -8,12 +8,15 @@
 #include <QUiLoader>
 #include <QScreen>
 #include <apimanager.h>
+#include <QMessageBox>
+#include <warningdialog.h>
+// 120633,119002
 
 #define IS_FULL_SCREEN windowState().testFlag(Qt::WindowFullScreen)
 //#define IS_FULL_SCREEN false
 
 
-MainWindow::MainWindow(QString filePath,QString token,QString course_id,QString video_id,QWidget *parent)
+MainWindow::MainWindow(QString filePath,QString token,QString course_id,QString video_id,QString identifier,QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
 {
@@ -22,6 +25,7 @@ MainWindow::MainWindow(QString filePath,QString token,QString course_id,QString 
     this->token = token;
     this->video_id = video_id;
     this->course_id = course_id;
+    this->identifier = identifier;
     Player = new QMediaPlayer();
     QAudioOutput *audioOutput = new QAudioOutput();
     seekbarNewController = new SeekbarProgressController(this);
@@ -59,19 +63,34 @@ MainWindow::MainWindow(QString filePath,QString token,QString course_id,QString 
     fullScreenEventHandler = new WindowEventHandler(this,this);
     // don't know if we need this class
     connect(fullScreenEventHandler,&WindowEventHandler::onFullScreenStateChanged,this,&MainWindow::handleWindowModesTransitions);
-    QCoreApplication* guiApp = QGuiApplication::instance();
-    QGuiApplication* instance = qobject_cast<QGuiApplication*>(guiApp);
+    guiApp = QGuiApplication::instance();
+    guiInstance = qobject_cast<QGuiApplication*>(guiApp);
+
     QObject::connect(
-        instance,
+        guiInstance,
         &QGuiApplication::screenAdded,
-        [](){
-            qDebug()<<"device added-------------------- warning!!!!!!!!!";
+        [this](){
+            this->showWarningDialog();
     });
     setupKeyboardShortcuts();
     setFixedSize(1024,768);
     disableScreenRecording();
     this->folderPath = filePath;
-    //setWindowFlag(Qt::Drawer);
+}
+
+void MainWindow::showWarningDialog(){
+    if(guiInstance->screens().count() > 1){
+        QDialog * warnigDialog = new WarningDialog(this);
+        if(Player != nullptr && Player->isPlaying() && IS_FULL_SCREEN){
+            on_normal_button_pressed();
+            on_pushButton_Stop_clicked();
+            blockedForPiracy = true;
+        }else {
+            on_pushButton_Stop_clicked();
+            blockedForPiracy = true;
+        }
+        warnigDialog->show();
+    };
 }
 
 void MainWindow::disableScreenRecording(){
@@ -176,6 +195,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::durationChanged(qint64 duration)
 {
+    //qDebug()<<"durationChanged called";
     if(IS_FULL_SCREEN && fsSeekbar != nullptr){
         fsSeekbarController->setSliderMaxLimit(timeLimit);
     }else {
@@ -189,11 +209,7 @@ void MainWindow::positionChanged(qint64 duration)
     for(int i= 0;i<currentIndex;i++){
         sum += videoTimeArray[i];
     }
-    // qint64 moveTo = (currentIndex * timeLimit) + (qint64)floor(duration / 1000.0) ;
     qint64 moveTo = (sum / 1000) + (duration / 1000) ;
-    // qint64 moveTo = duration;
-
-    //qDebug()<<"move to "<<moveTo;
     if(IS_FULL_SCREEN && fsSeekbar != nullptr){
         if(!fsSeekbar->isSliderDown()) {
             fsSeekbarController->moveSlider(moveTo);
@@ -221,8 +237,6 @@ void MainWindow::updateDuration(qint64 Duration)
     {
         QTime CurrentTime((Duration / 3600) % (timeLimit / minuteRatio), (Duration / 60) % (timeLimit /minuteRatio), Duration % (timeLimit /minuteRatio), (Duration * 1000) % 1000);
         QTime TotalTime((fullVideoDurtaion / 3600) % (timeLimit / minuteRatio), (fullVideoDurtaion / 60) % (timeLimit /minuteRatio), fullVideoDurtaion % (timeLimit/minuteRatio), (fullVideoDurtaion * 1000) % 1000);
-        //qDebug()<<CurrentTime<<"current time";
-        //qDebug()<<TotalTime<<"total time";
         QString Format ="";
         if (fullVideoDurtaion > 3600) Format = "hh:mm:ss";
         else Format = "mm:ss";
@@ -239,12 +253,12 @@ void MainWindow::updateDuration(qint64 Duration)
 
 void MainWindow::on_actionOpen_triggered()
 {
-    //selectedDirectory = QFileDialog::getExistingDirectory(nullptr, "Select Directory", QDir::homePath(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     selectedDirectory = this->folderPath;
     QDir directory(selectedDirectory);
     QString filter = videoFileChunkPattern;
     QStringList files = directory.entryList(QStringList() << filter,QDir::Files);
     fileCount = files.length();
+    qDebug()<<files.length() <<" files --- ";
     if(fileCount == 0){
         return;
     }
@@ -263,15 +277,15 @@ void MainWindow::on_actionOpen_triggered()
     videoItem = new QGraphicsVideoItem();
     scene->addItem(videoItem);
 
-    WATERMARK_TEXT = new QGraphicsTextItem("Your Watermark Text");
+    WATERMARK_TEXT = new QGraphicsTextItem(this->identifier);
     QFont font("Arial", 24, QFont::Bold);
     WATERMARK_TEXT->setFont(font);
-    WATERMARK_TEXT->setDefaultTextColor(Qt::black);
+    WATERMARK_TEXT->setDefaultTextColor(Qt::red);
     WATERMARK_TEXT->setOpacity(0.3f);
     WATERMARK_TEXT->setPos(10, 10); // Position the watermark
     // red recording dot
     scene->addItem(WATERMARK_TEXT);
-    RECORDING_RED_DOT = new RedDotRecording(scene,"8787878799",ui->video_section);
+    RECORDING_RED_DOT = new RedDotRecording(scene,this->identifier.toStdString(),ui->video_section);
     RECORDING_FLASH_LAYER = new ScreenFlashLayer(scene,phoneNumber,ui->video_section);
     Player->setVideoOutput(videoItem);
     RECORDING_RED_DOT->updatePosition(20, view->height());
@@ -301,20 +315,15 @@ void MainWindow::on_actionOpen_triggered()
     connect(seekbarController,&VideoProgressBarController::onSeekbarSecondsTimerEndSliding,this,&MainWindow::seekBackward);
     seekbarController->setSliderMaxLimit(timeLimit);
     seekbarConnection = connect(seekbarController,&VideoProgressBarController::onSeekbarStopedSliding,this,&MainWindow::onSliderStop);
-    //Player->pause();
     playbackRateHandler->chnagePlaybackRate(1.0f);
     RECORDING_FLASH_LAYER->startFlasing();
     RECORDING_RED_DOT->startFlasing();
     RECORDING_RED_DOT->updatePosition(20, view->height() - 40);
 
-    //////////////
-    ///
-    ///
-    //on_pushButton_full_screen_clicked();
 }
 
 void MainWindow::on_pushButton_Play_Pause_clicked(){
-    //qDebug()<<Player->playbackState();
+    if(blockedForPiracy) return;
     if(fileCount <= 0) return;
     if(Player->playbackState() == QMediaPlayer::PlaybackState::PlayingState){
         seekbarNewController->pause();
@@ -333,12 +342,14 @@ void MainWindow::on_pushButton_Play_Pause_clicked(){
 
 void MainWindow::on_pushButton_Stop_clicked()
 {
-    loadParticalarChunk(0,0);
-    mediaStopped = true;
-    Player->pause();
     sliderTime = -1;
     currentIndex = 0;
     IS_Pause = true;
+    mediaStopped = true;
+    jumpToPosition(0);
+    if(Player != nullptr){
+        Player->pause();
+    }
     if(IS_FULL_SCREEN){
         fsSeekbarController->moveSlider(0);
     }else {
@@ -372,6 +383,7 @@ void MainWindow::on_horizontalSlider_Volume_valueChanged(int value)
 
 void MainWindow::on_pushButton_Seek_Backward_clicked()
 {
+    if(blockedForPiracy) return;
     if(fileCount <= 0) return;
     if(IS_FULL_SCREEN){
         int oldTime = fsSeekbarController->getValue() - 10;
@@ -402,6 +414,7 @@ void MainWindow::on_pushButton_Seek_Backward_clicked()
 
 void MainWindow::on_pushButton_Seek_Forward_clicked()
 {
+    if(blockedForPiracy) return;
     if(fileCount <= 0) return;
     if(IS_FULL_SCREEN){
         int oldTime = fsSeekbarController->getValue() + 10;
@@ -431,13 +444,14 @@ void MainWindow::on_pushButton_Seek_Forward_clicked()
 }
 
 void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
-    //qDebug()<<"media status"<<status;
-    if(status == QMediaPlayer::MediaStatus::BufferedMedia && mediaStopped == false){
+    qDebug()<<"media status"<<status;
+    if(status == QMediaPlayer::MediaStatus::BufferedMedia && mediaStopped == false && !blockedForPiracy){
+        qDebug()<<"is seekable"<<Player->isSeekable();
         Player->play();
-        //qDebug()<<Player->duration()<<"media duration";
+        qDebug()<<Player->duration()<<"media duration";
     }
 
-    if(status == QMediaPlayer::MediaStatus::LoadedMedia && mediaStopped == false){
+    if(status == QMediaPlayer::MediaStatus::LoadedMedia && mediaStopped == false && !blockedForPiracy){
         Player->play();
     }
 
@@ -450,10 +464,12 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
     }
 
     if(fileCount <= currentIndex) {
+        on_pushButton_Stop_clicked();
         seekbarNewController->stop();
         return;
     }
-    //else qDebug() << "passed 2st test" << currentIndex;
+    qDebug() << "passed 2st test" << currentIndex;
+
 
     QDir directory(selectedDirectory);
     QStringList filesToPlay = getFileList(selectedDirectory);
@@ -462,12 +478,11 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
         qDebug() << "Failed to open file for reading:" << file.errorString();
         return; // or handle the error in some way
     }
-
+    qDebug()<<"current index to play" << currentIndex;
     QByteArray videoArray = file.readAll();
     file.close(); // Close the file after reading
     openParticularChunk(videoArray,currentIndex);
     seekbarNewController->resume();
-    Player->play();
 
 }
 
@@ -498,7 +513,6 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
  }
 
  void MainWindow::on_horizontalSlider_Duration_sliderMoved(){
-     //qDebug()<<"slided----";
      if(IS_FULL_SCREEN){
         fsSeekbarController->setupTimer(this);
         seekbarNewController->markGettingDragged();
@@ -510,6 +524,7 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
 
 
  void MainWindow::jumpToPosition(int secondToJump){
+     if(blockedForPiracy) return;
      //qDebug()<<Player->isSeekable()<< "is seekable";
      //qDebug()<<secondToJump<<"jump second";
      int videoIndexToJump = getVideoIndexToJump(secondToJump);
@@ -558,6 +573,7 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
 
  void MainWindow::loadParticalarChunk(int videoIndex,int extraSeek){
 
+     if(blockedForPiracy) return;
      if(fileCount <= currentIndex) {
          seekbarNewController->pause();
          return;
@@ -565,11 +581,13 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
 
     if(currentIndex == videoIndex){
          Player->setPosition(extraSeek * 1000);
+        qDebug()<<"as not expected";
         return;
     }else {
         currentIndex = videoIndex;
     }
 
+    qWarning()<<videoIndex;
     QDir directory(selectedDirectory);
     QStringList filesToPlay = getFileList(selectedDirectory);
     QFile file(directory.filePath(filesToPlay[videoIndex]));
@@ -582,15 +600,22 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
     QByteArray videoArray = file.readAll();
     file.close(); // Close the file after reading
     openParticularChunk(videoArray,videoIndex);
-    seekbarController->setupSeekTimer(this,seekbarController->getValue() + extraSeek);
-
+    if(IS_FULL_SCREEN){
+        fsSeekbarController->setupSeekTimer(this,fsSeekbarController->getValue() + extraSeek);
+    }else {
+        seekbarController->setupSeekTimer(this,seekbarController->getValue() + extraSeek);
+    }
  }
 
 
  void MainWindow::openParticularChunk(QByteArray byteData,int videoIndex){
     // Create a new buffer and set its data
     QBuffer* newBuffer = new QBuffer();
+    qDebug() << "vid index" << videoIndex;
+    qDebug() << "byte data" << byteData.length();
+
     newBuffer->setData(handler->decryptFile(byteData,videoItemList[videoIndex]));
+    qDebug() << " setting data";
 
     // Open the buffer for reading
     if (!newBuffer->open(QIODevice::ReadOnly)) {
@@ -598,7 +623,7 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
         return; // or handle the error in some waa
     }
     Player->setSourceDevice(newBuffer, QUrl("someelse.mp4"));
-    //qDebug() << "after here";
+    qDebug() << "after here";
  }
 
  void MainWindow::resizeEvent(QResizeEvent* event)
@@ -737,6 +762,7 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
  }
 
  void MainWindow::handlePlayPauseButtonState(QMediaPlayer::PlaybackState playbackState){
+     qWarning()<<playbackState;
      if(IS_FULL_SCREEN){
          if(playbackState == QMediaPlayer::PlaybackState::PlayingState){
             fsPlayPauseButton->setStyleSheet( pauseButtonStyle );
@@ -840,13 +866,20 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
  }
 
  void MainWindow::onKeyFetchCompleted(QList<VideoData> keyList){
-       for (const VideoData &data : keyList) {
+     if(guiInstance->screens().count() == 1){
+           videoTimeArray  = QList<int>();
+           for (const VideoData &data : keyList) {
             qDebug() << "Duration:" << data.duration;
             qDebug() << "Key:" << data.key;
             qDebug() << "IV:" << data.iv;
             qDebug() << "File Name:" << data.fileName;
-       }
-       this->videoItemList = keyList;
-       on_actionOpen_triggered();
+            videoTimeArray.append(data.duration.toInt() * 1000);
+           }
+           this->videoItemList = keyList;
+           qDebug()<<"vector data"<<videoTimeArray;
+           on_actionOpen_triggered();
+     }else {
+        showWarningDialog();
+     }
  }
 

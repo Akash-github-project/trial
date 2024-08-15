@@ -18,5 +18,7 @@
         <file>home_selected</file>
         <file>my_account_unselected</file>
         <file>notification_unselected</file>
+        <file>piracy_warning</file>
+        <file>plus</file>
     </qresource>
 </RCC>
