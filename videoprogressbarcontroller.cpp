@@ -76,6 +76,10 @@ void VideoProgressBarController::setupSeekTimer(QObject *parent,long oldTime){
     }
 }
 
+void VideoProgressBarController::markSeekPending(bool pendingStatus){
+    this->seekPending = pendingStatus;
+}
+
 void VideoProgressBarController::onSeekbarSecondsTimerEnd(){
     emit onSeekbarSecondsTimerEndSliding(oldTime);
 }

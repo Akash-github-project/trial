@@ -38,7 +38,8 @@ MainWindow::MainWindow(QString filePath,QString token,QString course_id,QString 
     Player->setAudioOutput(audioOutput);
     Player->audioOutput()->setVolume(ui->horizontalSlider_Volume->value() / 100.0f);
 
-    ui->horizontalSlider_Duration->setTabletTracking(false);
+    //ui->horizontalSlider_Duration->setTabletTracking(false);
+    ui->horizontalSlider_Duration->setTracking(false);
     playbackRateHandler = new PlaybackRateHandler(this,Player);
 
     //
@@ -55,7 +56,7 @@ MainWindow::MainWindow(QString filePath,QString token,QString course_id,QString 
     seekbarController = new VideoProgressBarController(ui->horizontalSlider_Duration,0);
     seekbarController->setSliderMaxLimit(timeLimit);
     seekbarConnection = connect(seekbarController,&VideoProgressBarController::onSeekbarStopedSliding,this,&MainWindow::onSliderStop);
-    connect(ui->horizontalSlider_Duration,&QSlider::sliderReleased,this,&MainWindow::on_horizontalSlider_Duration_sliderMoved);
+    connect(ui->horizontalSlider_Duration,&QSlider::valueChanged,this,&MainWindow::on_horizontalSlider_Duration_sliderMoved);
     connect(ui->horizontalSlider_Duration,&QSlider::actionTriggered,this,&MainWindow::slderClicked);
     connect(ui->horizontalSlider_Volume,&QSlider::valueChanged,this,&MainWindow::handleVolumeChange);
     connect(playbackRateHandler,&PlaybackRateHandler::playbackRateChanged,this,&MainWindow::onPlaybackRateChanged);
@@ -115,11 +116,17 @@ void MainWindow::handleWindowModesTransitions(bool isFullScreen){
     //setupFullScreenControls();
 }
 
-void MainWindow::seekBackward(long oldTime){
+void MainWindow::seekToRemainingTime(long oldTime){
     qDebug()<<"-------------------------";
     qDebug()<<oldTime;
     jumpToPosition(oldTime);
+    if(IS_FULL_SCREEN){
+        fsSeekbarController->markSeekPending(false);
+    }else {
+        seekbarController->markSeekPending(false);
+    }
 }
+
 
 
 void MainWindow::slderClicked(int action){
@@ -215,9 +222,9 @@ void MainWindow::positionChanged(qint64 duration)
             fsSeekbarController->moveSlider(moveTo);
         }
     }else {
-        if (!ui->horizontalSlider_Duration->isSliderDown())
+        if (!ui->horizontalSlider_Duration->isSliderDown() && !seekbarController->seekPending)
         {
-        seekbarController->moveSlider(moveTo);
+            seekbarController->moveSlider(moveTo);
         }
     }
     updateDuration(moveTo);
@@ -312,7 +319,7 @@ void MainWindow::on_actionOpen_triggered()
 
     QObject::disconnect(seekbarConnection);
     seekbarController = new VideoProgressBarController(ui->horizontalSlider_Duration,fileCount);
-    connect(seekbarController,&VideoProgressBarController::onSeekbarSecondsTimerEndSliding,this,&MainWindow::seekBackward);
+    connect(seekbarController,&VideoProgressBarController::onSeekbarSecondsTimerEndSliding,this,&MainWindow::seekToRemainingTime);
     seekbarController->setSliderMaxLimit(timeLimit);
     seekbarConnection = connect(seekbarController,&VideoProgressBarController::onSeekbarStopedSliding,this,&MainWindow::onSliderStop);
     playbackRateHandler->chnagePlaybackRate(1.0f);
@@ -334,6 +341,16 @@ void MainWindow::on_pushButton_Play_Pause_clicked(){
         }
         seekbarNewController->resume();
         Player->play();
+        if(IS_FULL_SCREEN){
+
+           int videoIndexToJump = getVideoIndexToJump(fsSeekbarController->getValue());
+            currentIndex = videoIndexToJump;
+            jumpToPosition(fsSeekbarController->getValue());
+        }else {
+           int videoIndexToJump = getVideoIndexToJump(seekbarController->getValue());
+            currentIndex = videoIndexToJump;
+            jumpToPosition(seekbarController->getValue());
+        }
         mediaStopped = false;
         IS_Pause = false;
     }
@@ -343,18 +360,18 @@ void MainWindow::on_pushButton_Play_Pause_clicked(){
 void MainWindow::on_pushButton_Stop_clicked()
 {
     sliderTime = -1;
-    currentIndex = 0;
+    currentIndex = -1;
     IS_Pause = true;
     mediaStopped = true;
     jumpToPosition(0);
     if(Player != nullptr){
         Player->pause();
     }
-    if(IS_FULL_SCREEN){
-        fsSeekbarController->moveSlider(0);
-    }else {
-        seekbarController->moveSlider(0);
-    }
+    // if(IS_FULL_SCREEN){
+    //     fsSeekbarController->moveSlider(0);
+    // }else {
+    //     seekbarController->moveSlider(0);
+    // }
     handlePlayPauseButtonState(QMediaPlayer::PausedState);
 }
 
@@ -391,6 +408,8 @@ void MainWindow::on_pushButton_Seek_Backward_clicked()
         if(remaingTime >= 110){
             fsSeekbarController->moveSlider(fsSeekbarController->getValue() - 10);
             jumpToPosition(fsSeekbarController->getValue());
+
+            fsSeekbarController->markSeekPending(true);
             fsSeekbarController->setupSeekTimer(this,oldTime);
         }else {
             fsSeekbarController->moveSlider(fsSeekbarController->getValue() - 10);
@@ -403,6 +422,7 @@ void MainWindow::on_pushButton_Seek_Backward_clicked()
         if(remaingTime >= 110){
             seekbarController->moveSlider(seekbarController->getValue() - 10);
             jumpToPosition(seekbarController->getValue());
+            seekbarController->markSeekPending(true);
             seekbarController->setupSeekTimer(this,oldTime);
         }else {
             seekbarController->moveSlider(seekbarController->getValue() - 10);
@@ -422,6 +442,7 @@ void MainWindow::on_pushButton_Seek_Forward_clicked()
         if(remaingTime <= 10){
             fsSeekbarController->moveSlider(fsSeekbarController->getValue() + 10);
             jumpToPosition(fsSeekbarController->getValue());
+            fsSeekbarController->markSeekPending(true);
             fsSeekbarController->setupSeekTimer(this,oldTime);
         }else {
             fsSeekbarController->moveSlider(fsSeekbarController->getValue() + 10);
@@ -435,6 +456,7 @@ void MainWindow::on_pushButton_Seek_Forward_clicked()
         if(remaingTime <= 10){
             seekbarController->moveSlider(seekbarController->getValue() + 10);
             jumpToPosition(seekbarController->getValue());
+            seekbarController->markSeekPending(true);
             seekbarController->setupSeekTimer(this,oldTime);
         }else {
             seekbarController->moveSlider(seekbarController->getValue() + 10);
@@ -464,9 +486,14 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
     }
 
     if(fileCount <= currentIndex) {
+        currentIndex = 0;
+        if(IS_FULL_SCREEN){
+            fsSeekbarController->moveSlider(0);
+        }else {
+            seekbarController->moveSlider(0);
+        }
         on_pushButton_Stop_clicked();
-        seekbarNewController->stop();
-        return;
+        //seekbarNewController->stop();
     }
     qDebug() << "passed 2st test" << currentIndex;
 
@@ -499,6 +526,7 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
 }
 
  void MainWindow::onSliderStop(){
+    qWarning()<<"DANGER"<<"onSliderStop";
     seekbarNewController->markDraggingEnded();
     int position = 0;
     if(IS_FULL_SCREEN){
@@ -513,6 +541,7 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
  }
 
  void MainWindow::on_horizontalSlider_Duration_sliderMoved(){
+    qWarning()<<"DANGER"<<"on_horizontalSlider_Duration_sliderMoved";
      if(IS_FULL_SCREEN){
         fsSeekbarController->setupTimer(this);
         seekbarNewController->markGettingDragged();
@@ -525,12 +554,8 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
 
  void MainWindow::jumpToPosition(int secondToJump){
      if(blockedForPiracy) return;
-     //qDebug()<<Player->isSeekable()<< "is seekable";
-     //qDebug()<<secondToJump<<"jump second";
      int videoIndexToJump = getVideoIndexToJump(secondToJump);
      int extraSecondsSeek = getExtraSeek(secondToJump,videoIndexToJump); //secondToJump % timeLimit;
-     //qDebug()<<"videoIndexToJump "<<videoIndexToJump;
-     //qDebug()<<"extraSecondsSeek "<<extraSecondsSeek;
      loadParticalarChunk(videoIndexToJump,extraSecondsSeek);
  }
 
@@ -590,20 +615,29 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
     qWarning()<<videoIndex;
     QDir directory(selectedDirectory);
     QStringList filesToPlay = getFileList(selectedDirectory);
-    QFile file(directory.filePath(filesToPlay[videoIndex]));
-    if (!file.open(QIODevice::ReadOnly)) {
-        qDebug() << "Failed to open file for reading:" << file.errorString();
-        return; // or handle the error in some way
-    }
+    if(filesToPlay.length() > videoIndex){
+        QString fileName = filesToPlay[videoIndex];
+        QFile file(directory.filePath(fileName));
+        if (!file.open(QIODevice::ReadOnly)) {
+            qDebug() << "Failed to open file for reading:" << file.errorString();
+            return; // or handle the error in some way
+        }
 
-    //2:33:41
-    QByteArray videoArray = file.readAll();
-    file.close(); // Close the file after reading
-    openParticularChunk(videoArray,videoIndex);
-    if(IS_FULL_SCREEN){
-        fsSeekbarController->setupSeekTimer(this,fsSeekbarController->getValue() + extraSeek);
-    }else {
-        seekbarController->setupSeekTimer(this,seekbarController->getValue() + extraSeek);
+        //2:33:41
+        if(IS_FULL_SCREEN){
+            fsSeekbarController->markSeekPending(true);
+        }else {
+            seekbarController->markSeekPending(true);
+        }
+
+        QByteArray videoArray = file.readAll();
+        file.close(); // Close the file after reading
+        openParticularChunk(videoArray,videoIndex);
+        if(IS_FULL_SCREEN){
+            fsSeekbarController->setupSeekTimer(this,fsSeekbarController->getValue());
+        }else {
+            seekbarController->setupSeekTimer(this,seekbarController->getValue());
+        }
     }
  }
 
@@ -711,7 +745,7 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
     fsSeekbarController = new VideoProgressBarController(fsSeekbar,fileCount);
     fsSeekbarController->setSliderMaxLimit(timeLimit);
     fsSeekbarConnection = connect(fsSeekbarController,&VideoProgressBarController::onSeekbarStopedSliding,this,&MainWindow::onSliderStop);
-    fsSeekbarForwardBackwardConnection = connect(fsSeekbarController,&VideoProgressBarController::onSeekbarSecondsTimerEndSliding,this,&MainWindow::seekBackward);
+    fsSeekbarForwardBackwardConnection = connect(fsSeekbarController,&VideoProgressBarController::onSeekbarSecondsTimerEndSliding,this,&MainWindow::seekToRemainingTime);
     connect(fsSeekbar,&QSlider::sliderReleased,this,&MainWindow::on_horizontalSlider_Duration_sliderMoved);
     connect(fsSeekbar,&QSlider::actionTriggered,this,&MainWindow::slderClicked);
     connect(fsTenSecForward, &QPushButton::clicked,this,&MainWindow::on_pushButton_Seek_Forward_clicked);

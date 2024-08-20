@@ -29,6 +29,7 @@ public:
     long long extraSeek = 0;
     bool blocked = false;
     long oldTime = 0;
+    bool seekPending = false;
 
 
     //debounceing
@@ -43,6 +44,8 @@ public:
     void jumpInstantly(QObject *parent);
     void scheduleSeek(long long seek);
     void setupSeekTimer(QObject *parent,long oldTime);
+    bool isSliderDown();
+    void markSeekPending(bool pendingStatus);
 private slots:
     void onSeekbarDebounceTimerEnd();
     void onSeekbarSecondsTimerEnd();
