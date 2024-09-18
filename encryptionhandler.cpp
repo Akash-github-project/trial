@@ -92,7 +92,7 @@ QByteArray EncryptionHandler::decryptFile(QByteArray byteArray,VideoData vidItem
     QByteArray* data = VectorToQByteArray( decryptedData );
     // qDebug()<<"writing file";
     /////
-    writeByteArrayToFile(*data,vidItem.fileName);
+    //writeByteArrayToFile(*data,vidItem.fileName);
     ///
 
     return *data;

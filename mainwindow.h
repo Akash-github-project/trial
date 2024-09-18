@@ -7,6 +7,7 @@
 #include "reddotrecording.h"
 #include "screenflashlayer.h"
 #include "apimanager.h"
+#include "nointernetdialog.h"
 
 #include <QMainWindow>
 #include <QMediaPlayer>
@@ -15,6 +16,8 @@
 #include <QtWidgets>
 #include <QtGui>
 #include <QVideoWidget>
+#include <QPixmap>
+#include <iostream>
 ///
 #include <QFile>
 #include <QBuffer>
@@ -22,10 +25,33 @@
 #include <QGraphicsVideoItem>
 #include <PlaybackRateHandler.h>
 #include <SeekbarProgressController.h>
+#include <customseekbar.h>
 #include <fullscreenviews.h>
-#include <windows.h>
 #include <QWindow>
-//
+#include <playercontrollerwidget.h>
+#include <warningdialog.h>
+#include "CustomGraphicsView.h"
+#include <FullScreenControlHoverHandler.h>
+#include <QGraphicsVideoItem>
+#include <QMetaObject>
+#include <QUiLoader>
+#include <QScreen>
+#include <apimanager.h>
+#include <QMessageBox>
+#include <userplaybacktimertracker.h>
+// platform specific
+#include <windows.h>
+#include <memory>
+#include <comdef.h>
+#include <wbemidl.h>
+#include <setupapi.h>
+#include <screendetector.h>
+
+#define NAME_SIZE 128
+#pragma comment(lib, "setuplib.lib")
+#pragma comment(lib, "user32.lib")
+#pragma comment(lib, "wbemuuid.lib")
+
 #define WATERMARK_TEXT random_video
 #define RECORDING_RED_DOT random_seekbar
 #define RECORDING_FLASH_LAYER random_seekbar_slider
@@ -40,28 +66,52 @@ class MainWindow : public QMainWindow
 
 public:
     //MainWindow(QWidget *parent = nullptr);
-    MainWindow(QString filePath,QString token,QString course_id,QString video_id,QString identifier,QWidget *parent = nullptr);
-
+    MainWindow(QString filePath,QString token,QString course_id,QString video_id,QString video_item_id,QString identifier,QWidget *parent = nullptr);
     ~MainWindow();
-
     // void makeButtonRound(QPushButton* button);
+     struct MonitorInfo {
+        std::string deviceName;
+        DEVMODE devMode;
+     };
     void resizeEvent(QResizeEvent *event);
     void slderClicked(int action);
     void setupFullScreenControls();
     void onPlaybackRateChanged(float playbackRate);
+    int getVideoIndexToJump(int timeInSeconds);
+    void onlyUpdatePlaybackTimeText(QString playbackDurationString);
+    void keyPressEvent(QKeyEvent *event) override;
+    void closeNoInternetDialogAndRetry();
+    void changeVolumeIconToMute();
+    void changeVolumeIconToLowFromMute();
+
 public:
-    int fileCount = 0;
-    const int timeLimit = 120;
-    QGraphicsScene *scene;
-     int oldHeight = 0;
-     int oldWidth = 0;
+    const GUID GUID_CLASS_MONITOR = {0x4d36e96e, 0xe325, 0x11ce, 0xbf, 0xc1, 0x08, 0x00, 0x2b, 0xe1, 0x03, 0x18};
+    PlayerControllerWidget *scene;
     QMediaPlayer *Player;
     // Create a QGraphicsScene
-    QGraphicsView *view = nullptr;
+    CustomGraphicsView *view = nullptr;
     QGraphicsVideoItem *videoItem = nullptr;
     PlaybackRateHandler *playbackRateHandler;
-    int getVideoIndexToJump(int timeInSeconds);
+    WarningDialog * warningDialog;
+    UserPlaybackTimerTracker * playbackTimer;
+
+public:
+    const int timeLimit = 120;
+    int fileCount = 0;
+    int minuteRatio = 2;
+    int oldHeight = 0;
+    int oldWidth = 0;
+    int detectMonitors();
+    void enumerateDisplays();
+    bool userAction = false;
+
+    bool GetSizeForDevID(short &WidthMm, short &HeightMm);
+    bool GetMonitorSizeFromEDID(const HKEY hDevRegKey, short &WidthMm, short &HeightMm);
+    QList<QPair<short, short>> getAllMonitorSizes();
 public slots:
+    void userPlaytimeDataFailed();
+    void userPlaytimeDataSuccess();
+    void sendTimeToServer(qint64 playTimeInSeconds);
     void fullScreenChnaged(const QRectF &rect);
     void on_normal_button_pressed();
     void handlePlayPauseButtonState(QMediaPlayer::PlaybackState playbackState);
@@ -77,7 +127,6 @@ public slots:
     void on_pushButton_Seek_Backward_clicked();
     void on_pushButton_Seek_Forward_clicked();
     void loadVideo(QMediaPlayer::MediaStatus status);
-    QStringList getFileList(const QString& directoryPath);
     void on_horizontalSlider_Duration_sliderMoved();
     void onSliderStop();
     void on_pushButton_1x_clicked();
@@ -86,66 +135,75 @@ public slots:
     void on_pushButton_2x_clicked();
     void on_pushButton_full_screen_clicked();
     void onKeyFetchCompleted(QList<VideoData> keyList);
-
+    void onNoInternet();
+    QStringList getFileList(const QString& directoryPath);
+    void closeWatchTimeNoInternetDialogAndRetry();
 private:
+    bool IS_Pause = true;
+    bool IS_Muted = false;
+    bool isLoading = false;
+    bool isChanging = false;
+    bool blockedForPiracy = false;
+    bool videoStarted = false;
+    bool isFullScreen = false;
+    bool mediaStopped = false;
+    bool isPaused = false;
+    bool pausedForNoInternet = false;
+    int extraSeekValue = -1;
+    int currentIndex = 0;
+
+    Ui::MainWindow *ui;
     ApiManager * manager;
     QList<VideoData> videoItemList;
-    QString video_id = "";
-    QString course_id = "";
-    QString token = "";
-    QString identifier = "";
-    bool blockedForPiracy = false;
-    Ui::MainWindow *ui;
     QGuiApplication* guiInstance;
     QCoreApplication* guiApp;
     QVideoWidget *Video = nullptr;
-    bool videoStarted = false;
     QGraphicsWidget *GraphicsWidget = nullptr;
     //FullScreenViews  *fullScreenViews = nullptr;
     SeekbarProgressController *seekbarNewController;
     // Create a QGraphicsVideoItem
     QList<int> videoTimeArray;
     qint64 mDuration;
-    bool IS_Pause = true;
-    bool IS_Muted = false;
-    bool isLoading = false;
-    bool isChanging = false;
-    int currentIndex = 0;
+    QString video_id = "";
+    QString course_id = "";
+    QString token = "";
+    QString video_item_id = "";
+    QString identifier = "";
     QString FileName;
     QString folderPath = nullptr;
-    VideoProgressBarController *seekbarController = nullptr;
     QString selectedDirectory;
     QString videoFileChunkPattern = "*.enc";
     //QString videoFileChunkPattern = "encrypted*.mp4";
-    qint64 sliderTime = -1;
+    //qint64 sliderTime = -1;
+    VideoProgressBarController *seekbarController = nullptr;
     EncryptionHandler *handler = nullptr;
     QGraphicsTextItem *WATERMARK_TEXT = nullptr;
     RedDotRecording *RECORDING_RED_DOT = nullptr;
     ScreenFlashLayer *RECORDING_FLASH_LAYER = nullptr;
     QMetaObject::Connection seekbarConnection ;
     std::string phoneNumber = "828282828228";
-    int extraSeekValue = -1;
-     bool isFullScreen = false;
-     VideoProgressBarController *fsSeekbarController = nullptr;
-     QPushButton *fsPlayPauseButton = nullptr;
-     QPushButton *fsStopButton = nullptr;
-     QPushButton *fsTenSecForward = nullptr;
-     QPushButton *fsTenSecBackward = nullptr;
-     QPushButton *fsNormalButton = nullptr;
-     QPushButton *fsSpeed1x = nullptr;
-     QPushButton *fsSpeed1p2x = nullptr;
-     QPushButton *fsSpeed1p5x = nullptr;
-     QPushButton *fsSpeed2x = nullptr;
-     QSlider *fsSeekbar = nullptr;
-     QSlider *fsSeekbarVolume = nullptr;
-     QLabel *fsCurrentTime = nullptr;
-     QLabel *fsTotalTime = nullptr;
-     QMetaObject::Connection fsSeekbarConnection;
-     QMetaObject::Connection fsSeekbarForwardBackwardConnection;
-     QWidget *controls;
-     WindowEventHandler *fullScreenEventHandler;
-     bool mediaStopped = false;
-     QString pauseButtonStyle =
+    VideoProgressBarController *fsSeekbarController = nullptr;
+    QPushButton *fsPlayPauseButton = nullptr;
+    QPushButton *fsStopButton = nullptr;
+    QPushButton *fsTenSecForward = nullptr;
+    QPushButton *fsTenSecBackward = nullptr;
+    QPushButton *fsNormalButton = nullptr;
+    QPushButton *fsSpeed1x = nullptr;
+    QPushButton *fsSpeed1p2x = nullptr;
+    QPushButton *fsSpeed1p5x = nullptr;
+    QPushButton *fsSpeed2x = nullptr;
+    CustomSeekbar *fsSeekbar = nullptr;
+    QSlider *fsSeekbarVolume = nullptr;
+    QLabel *fsCurrentTime = nullptr;
+    QLabel *fsTotalTime = nullptr;
+    QLabel *fsVolumeLowIcon = nullptr;
+    QMetaObject::Connection fsSeekbarConnection;
+    QMetaObject::Connection fsSeekbarForwardBackwardConnection;
+    QWidget *controls;
+    WindowEventHandler *fullScreenEventHandler;
+    NoInternetDialog *noIntentDialog = nullptr;
+    NoInternetDialog *noIntentDialogForTimer = nullptr;
+    QString pauseButtonStyle =
                 "QPushButton {"
                 "    border: none;"
                 "    background-image: url(://pause_button);"
@@ -160,6 +218,22 @@ private:
                 "    background-repeat: no-repeat;"
                 "    background-position: center;"
                 "}";
+     QString muteStyle =
+                "QLabel {"
+                "    border: none;"
+                "    background-image: url(://mute_volume);"
+                "    background-repeat: no-repeat;"
+                "    background-position: center;"
+                "}";
+
+     QString lowVolumeStyle =
+                "QLabel {"
+                "    border: none;"
+                "    background-image: url(://volume-low);"
+                "    background-repeat: no-repeat;"
+                "    background-position: center;"
+                "}";
+
      qint64 lastDisplayTime = 0;
 private:
      /////////////////
@@ -170,11 +244,13 @@ private:
     void windowStateChange(MainWindow *, int, MainWindow *);
     void handleUserManualFullScreen();
     void seekToRemainingTime(long oldTime);
-    int getExtraSeek(int timeInSeconds, int indexToJump);
     void setupKeyboardShortcuts();
     void handleUserManualMaximized();
     void handleUserManualUnMaximize();
     void handleArrowKey(int key);
+    void disableScreenRecording();
+    void showWarningDialog();
+    int getExtraSeek(int timeInSeconds, int indexToJump);
     bool eventFilter(QObject *watched, QEvent *event) override {
         if (event->type() == QEvent::KeyPress)
         {
@@ -188,9 +264,25 @@ private:
         }
         return QMainWindow::eventFilter(watched, event);
     }
-    void disableScreenRecording();
-    void showWarningDialog();
 protected:
+    bool nativeEvent(const QByteArray &eventType, void *message, qintptr *result) override {
+        MSG *msg = static_cast<MSG*>(message); // Correctly cast message to MSG*
+
+        if (msg->message == WM_DISPLAYCHANGE) {
+            // When display configuration changes, detect monitors again
+            auto allMonitors = getAllMonitorSizes();
+            qDebug() << "Display change detected (monitor added or removed).";
+            if(allMonitors.length() > 1){
+                showWarningDialog();
+            }
+            return true; // Indicate the event is handled
+        }
+
+        // Call the base class if the message is not handled
+        return QMainWindow::nativeEvent(eventType, message, result);
+    }
+
+
     void paintEvent(QPaintEvent *) override {
         QPainter p{this};
         p.fillRect(rect(), {100, 100, 100, 128});

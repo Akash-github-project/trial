@@ -20,5 +20,7 @@
         <file>notification_unselected</file>
         <file>piracy_warning</file>
         <file>plus</file>
+        <file>mute_volume</file>
+        <file>VideoDisplayContainer.qml</file>
     </qresource>
 </RCC>

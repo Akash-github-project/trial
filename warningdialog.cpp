@@ -16,6 +16,7 @@ WarningDialog::~WarningDialog()
 
 void WarningDialog::on_pushButton_clicked()
 {
-    this->close();
+    emit closed();
+    //this->close();
 }
 

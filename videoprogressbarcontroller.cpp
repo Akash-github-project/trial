@@ -27,9 +27,9 @@ void VideoProgressBarController::resetSliderTime(){
 
 //
 void VideoProgressBarController::moveSlider(int moveTo){
-    if(blocked == false){
+//    if(blocked == false){
         horizontalSlider_Duration->setValue(moveTo);
-    }
+ //   }
 }
 
 void VideoProgressBarController::setCurrentIndex(int index){

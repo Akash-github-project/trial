@@ -25,7 +25,7 @@ void OnboardingWrapper::otpRequested(QString phoneNumber){
 void OnboardingWrapper::otpRequestAccepted(QString phoneNumber){
     ui->stackedWidget->addWidget(registerDevice);
     ui->stackedWidget->setCurrentIndex(2);
-    qDebug()<<phoneNumber;
+    //qDebug()<<phoneNumber;
 }
 
 OnboardingWrapper::~OnboardingWrapper()

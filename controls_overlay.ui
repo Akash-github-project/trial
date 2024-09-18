@@ -81,7 +81,7 @@
          </widget>
         </item>
         <item alignment="Qt::AlignVCenter">
-         <widget class="QSlider" name="fs_HorizontalSlider_Duration">
+         <widget class="CustomSeekbar" name="fs_HorizontalSlider_Duration">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
             <horstretch>30</horstretch>
@@ -489,7 +489,7 @@ border:1px solid black;</string>
                   <string/>
                  </property>
                  <property name="pixmap">
-                  <pixmap resource="resources.qrc">:/volume-high</pixmap>
+                  <pixmap resource="resources.qrc">:/volume-low</pixmap>
                  </property>
                  <property name="margin">
                   <number>0</number>
@@ -539,7 +539,7 @@ border:1px solid black;</string>
                   <string/>
                  </property>
                  <property name="pixmap">
-                  <pixmap resource="resources.qrc">:/volume-low</pixmap>
+                  <pixmap resource="resources.qrc">:/volume-high</pixmap>
                  </property>
                 </widget>
                </item>
@@ -640,6 +640,13 @@ QPushButton {
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CustomSeekbar</class>
+   <extends>QSlider</extends>
+   <header>customseekbar.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="resources.qrc"/>
  </resources>

@@ -15,6 +15,9 @@ public:
     explicit WarningDialog(QWidget *parent = nullptr);
     ~WarningDialog();
 
+signals:
+    void closed();
+
 private slots:
     void on_pushButton_clicked();
 

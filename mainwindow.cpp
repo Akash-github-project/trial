@@ -1,31 +1,38 @@
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
-#include "CustomGraphicsView.h"
-
-#include <FullScreenControlHoverHandler.h>
-#include <QGraphicsVideoItem>
-#include <QMetaObject>
-#include <QUiLoader>
-#include <QScreen>
-#include <apimanager.h>
-#include <QMessageBox>
-#include <warningdialog.h>
+#include "customuiloader.h"
+#define TEST
 // 120633,119002
 
 #define IS_FULL_SCREEN windowState().testFlag(Qt::WindowFullScreen)
 //#define IS_FULL_SCREEN false
 
 
-MainWindow::MainWindow(QString filePath,QString token,QString course_id,QString video_id,QString identifier,QWidget *parent)
+MainWindow::MainWindow(QString filePath,QString token,QString course_id,QString video_id,QString video_item_id,QString identifier,QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+    ,warningDialog(new WarningDialog(this))
 {
     ui->setupUi(this);
+
+    guiApp = QGuiApplication::instance();
+    guiInstance = qobject_cast<QGuiApplication*>(guiApp);
+
+    setWindowTitle("Video Player");
+    QObject::connect(
+        warningDialog,
+        &WarningDialog::closed,
+        this,
+        [this](){
+            this->warningDialog->close();
+            guiInstance->exit();
+    });
 
     this->token = token;
     this->video_id = video_id;
     this->course_id = course_id;
     this->identifier = identifier;
+    this->video_item_id = video_item_id;
     Player = new QMediaPlayer();
     QAudioOutput *audioOutput = new QAudioOutput();
     seekbarNewController = new SeekbarProgressController(this);
@@ -33,7 +40,7 @@ MainWindow::MainWindow(QString filePath,QString token,QString course_id,QString 
 
     ui->horizontalSlider_Volume->setMinimum(0);
     ui->horizontalSlider_Volume->setMaximum(100);
-    ui->horizontalSlider_Volume->setValue(0);
+    ui->horizontalSlider_Volume->setValue(50);
 
     Player->setAudioOutput(audioOutput);
     Player->audioOutput()->setVolume(ui->horizontalSlider_Volume->value() / 100.0f);
@@ -43,8 +50,11 @@ MainWindow::MainWindow(QString filePath,QString token,QString course_id,QString 
     playbackRateHandler = new PlaybackRateHandler(this,Player);
 
     //
-     manager = new ApiManager();
-     connect(manager, &ApiManager::onKeyFetchFinished, this, &MainWindow::onKeyFetchCompleted);
+    manager = new ApiManager();
+    connect(manager, &ApiManager::onKeyFetchFinished, this, &MainWindow::onKeyFetchCompleted);
+    connect(manager, &ApiManager::noNetowrk, this, &MainWindow::onNoInternet);
+    //connect(manager, &ApiManager::noNetworkForTimer,this,&MainWindow::handleNoNetworkForTimer);
+
     //done
     connect(Player, &QMediaPlayer::durationChanged, this, &MainWindow::durationChanged);
     connect(Player, &QMediaPlayer::positionChanged, this, &MainWindow::positionChanged);
@@ -56,43 +66,86 @@ MainWindow::MainWindow(QString filePath,QString token,QString course_id,QString 
     seekbarController = new VideoProgressBarController(ui->horizontalSlider_Duration,0);
     seekbarController->setSliderMaxLimit(timeLimit);
     seekbarConnection = connect(seekbarController,&VideoProgressBarController::onSeekbarStopedSliding,this,&MainWindow::onSliderStop);
-    connect(ui->horizontalSlider_Duration,&QSlider::valueChanged,this,&MainWindow::on_horizontalSlider_Duration_sliderMoved);
-    connect(ui->horizontalSlider_Duration,&QSlider::actionTriggered,this,&MainWindow::slderClicked);
+    connect(ui->horizontalSlider_Duration,&CustomSeekbar::valueChanged,this,&MainWindow::on_horizontalSlider_Duration_sliderMoved);
+    connect(ui->horizontalSlider_Duration,&CustomSeekbar::userClickOnSeekbar,[this](){
+        this->userAction = true;
+    });
+//    connect(ui->horizontalSlider_Duration,&CustomSeekbar::actionTriggered,this,&MainWindow::slderClicked);
     connect(ui->horizontalSlider_Volume,&QSlider::valueChanged,this,&MainWindow::handleVolumeChange);
     connect(playbackRateHandler,&PlaybackRateHandler::playbackRateChanged,this,&MainWindow::onPlaybackRateChanged);
+
+    connect(manager,&ApiManager::noNetworkForTimer,this,&MainWindow::userPlaytimeDataFailed);
+    connect(manager,&ApiManager::onUserTimeSentSuccess,this,&MainWindow::userPlaytimeDataSuccess);
+
     handler = new EncryptionHandler();
     fullScreenEventHandler = new WindowEventHandler(this,this);
     // don't know if we need this class
-    connect(fullScreenEventHandler,&WindowEventHandler::onFullScreenStateChanged,this,&MainWindow::handleWindowModesTransitions);
-    guiApp = QGuiApplication::instance();
-    guiInstance = qobject_cast<QGuiApplication*>(guiApp);
 
-    QObject::connect(
-        guiInstance,
-        &QGuiApplication::screenAdded,
-        [this](){
-            this->showWarningDialog();
-    });
-    setupKeyboardShortcuts();
-    setFixedSize(1024,768);
-    disableScreenRecording();
+    setFixedSize(1024,756);
+    // disableScreenRecording();
     this->folderPath = filePath;
+    this->playbackTimer = new UserPlaybackTimerTracker(Player,this);
+    // Connect to the play time updated signal
+    connect(playbackTimer, &UserPlaybackTimerTracker::sendMetrics, this,&MainWindow::sendTimeToServer);
+
+    ui->pushButton_1x->hide();
+    ui->pushButton_1p2x->hide();
+    ui->pushButton_1p5x->hide();
+    ui->pushButton_2x->hide();
 }
+
+void MainWindow::sendTimeToServer(qint64 playTimeInSeconds){
+    this->manager->sendUserWatchTime(token,course_id,video_item_id,video_id,playTimeInSeconds);
+}
+
+void MainWindow::enumerateDisplays() {
+    DISPLAY_DEVICE displayDevice;
+    displayDevice.cb = sizeof(DISPLAY_DEVICE);
+    int deviceIndex = 0;
+
+    while (EnumDisplayDevices(NULL, deviceIndex, &displayDevice, 0)) {
+        qWarning() << "Device Name: " << displayDevice.DeviceName ;
+        qWarning() << "Device String: " << displayDevice.DeviceString ;
+
+
+        if (displayDevice.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE) {
+            qDebug() << "Primary Device";
+        }
+
+        if (displayDevice.StateFlags & DISPLAY_DEVICE_MIRRORING_DRIVER) {
+            qDebug() << "Mirrored Display";
+        }
+
+        qDebug() << "---------------------";
+
+        deviceIndex++;
+    }
+    qDebug()<<"count of monitors" << deviceIndex;
+}
+
 
 void MainWindow::showWarningDialog(){
-    if(guiInstance->screens().count() > 1){
-        QDialog * warnigDialog = new WarningDialog(this);
-        if(Player != nullptr && Player->isPlaying() && IS_FULL_SCREEN){
-            on_normal_button_pressed();
-            on_pushButton_Stop_clicked();
-            blockedForPiracy = true;
-        }else {
-            on_pushButton_Stop_clicked();
-            blockedForPiracy = true;
+    auto allMonitors = getAllMonitorSizes();
+    ScreenDetector detector = ScreenDetector();
+    int monitorCount = detector.getMonitorInfoFromDeviceManager();
+    try {
+        if((allMonitors.length() > 1) || (monitorCount > 1) && warningDialog != nullptr){
+            if(Player != nullptr && Player->isPlaying() && IS_FULL_SCREEN){
+                on_normal_button_pressed();
+                on_pushButton_Stop_clicked();
+                blockedForPiracy = true;
+            }else {
+                // on_pushButton_Stop_clicked();
+                blockedForPiracy = true;
+            }
+            warningDialog->show();
         }
-        warnigDialog->show();
-    };
+    }catch (const std::exception &e) {
+        // Catch standard exceptions derived from std::exception
+        qDebug() << "Standard exception caught:" << e.what();
+    }
 }
+
 
 void MainWindow::disableScreenRecording(){
     // Get the native window handle
@@ -106,19 +159,37 @@ void MainWindow::disableScreenRecording(){
 }
 
 void MainWindow::setupKeyboardShortcuts(){
+    connect(RECORDING_FLASH_LAYER, &ScreenFlashLayer::doubleClickedScreen,this,&MainWindow::on_pushButton_full_screen_clicked);
     QShortcut *playPauseShortcut = new QShortcut(QKeySequence(Qt::Key_Space), this);
     connect(playPauseShortcut, &QShortcut::activated, this, &MainWindow::on_pushButton_Play_Pause_clicked);
+    QShortcut *normalWindowShortcut = new QShortcut(QKeySequence(Qt::Key_Escape),this);
+    connect(normalWindowShortcut, &QShortcut::activated, this, &MainWindow::on_normal_button_pressed);
 
 }
 
 void MainWindow::handleWindowModesTransitions(bool isFullScreen){
-    qDebug()<<"full screen";
+    //qDebug()<<"full screen";
     //setupFullScreenControls();
 }
 
+void MainWindow::keyPressEvent(QKeyEvent *event) {
+    if(event->key() == Qt::Key_Space){
+       on_pushButton_Play_Pause_clicked();
+    }
+    if (event->key() == Qt::Key_Escape && IS_FULL_SCREEN) {
+        // Handle Esc key press here
+        // Example: Close fullscreen, exit modal, or perform other actions
+         on_normal_button_pressed();  // Exit fullscreen if the window is in fullscreen mode
+    }
+    else {
+        // Pass the event to the base class for default processing
+        QMainWindow::keyPressEvent(event);
+    }
+}
+
 void MainWindow::seekToRemainingTime(long oldTime){
-    qDebug()<<"-------------------------";
-    qDebug()<<oldTime;
+    //qDebug()<<"-------------------------";
+    //qDebug()<<oldTime;
     jumpToPosition(oldTime);
     if(IS_FULL_SCREEN){
         fsSeekbarController->markSeekPending(false);
@@ -130,7 +201,7 @@ void MainWindow::seekToRemainingTime(long oldTime){
 
 
 void MainWindow::slderClicked(int action){
-    qDebug()<<"slider clicked called"<<action<<"slider value"<<seekbarController->getValue();
+    //qDebug()<<"slider clicked called"<<action<<"slider value"<<seekbarController->getValue();
     // if(IS_FULL_SCREEN){
     //     fsSeekbarController->jumpInstantly(this);
     // }else {
@@ -218,7 +289,7 @@ void MainWindow::positionChanged(qint64 duration)
     }
     qint64 moveTo = (sum / 1000) + (duration / 1000) ;
     if(IS_FULL_SCREEN && fsSeekbar != nullptr){
-        if(!fsSeekbar->isSliderDown()) {
+        if(!fsSeekbar->isSliderDown() && !fsSeekbarController->seekPending) {
             fsSeekbarController->moveSlider(moveTo);
         }
     }else {
@@ -228,18 +299,45 @@ void MainWindow::positionChanged(qint64 duration)
         }
     }
     updateDuration(moveTo);
-    int x = QRandomGenerator::global()->bounded(0,  ui->video_section->height() / 2);
-    int y = QRandomGenerator::global()->bounded(0,  ui->video_section->width() - 50);
-    if(WATERMARK_TEXT != nullptr && (QDateTime::currentSecsSinceEpoch() - lastDisplayTime > 2 )){
+    int x = QRandomGenerator::global()->bounded(0,  view->width() - 10);
+    int y = QRandomGenerator::global()->bounded(0,  view->height() - 50);
+    if(WATERMARK_TEXT != nullptr && (QDateTime::currentSecsSinceEpoch() - lastDisplayTime > 1 )){
         lastDisplayTime = QDateTime::currentSecsSinceEpoch();
         WATERMARK_TEXT->setPos(x,y);
     }
 }
 
+void MainWindow::onlyUpdatePlaybackTimeText(QString playbackDurationString){
+
+    qint64 fullVideoDurtaion = 0;
+    for(int i = 0;i< videoTimeArray.length();i++){
+        fullVideoDurtaion += videoTimeArray[i] / 1000;
+    }
+
+    //qint64 fullVideoDurtaion = fileCount * timeLimit;
+    QTime TotalTime((fullVideoDurtaion / 3600) % (timeLimit / minuteRatio), (fullVideoDurtaion / 60) % (timeLimit /minuteRatio), fullVideoDurtaion % (timeLimit/minuteRatio), (fullVideoDurtaion * 1000) % 1000);
+    QString Format ="";
+    if (fullVideoDurtaion > 3600) Format = "hh:mm:ss";
+    else Format = "mm:ss";
+    if(IS_FULL_SCREEN && fsSeekbar != nullptr && fsTotalTime != nullptr && fsCurrentTime != nullptr){
+        fsTotalTime->setText(TotalTime.toString(Format));
+        ui->label_Total_Time->setText(TotalTime.toString(Format));
+        fsCurrentTime->setText(playbackDurationString);
+        ui->label_current_Time->setText(playbackDurationString);
+    }else {
+        ui->label_current_Time->setText(playbackDurationString);
+        ui->label_Total_Time->setText(TotalTime.toString(Format));
+    }
+}
+
 void MainWindow::updateDuration(qint64 Duration)
 {
-    qint64 fullVideoDurtaion = fileCount * timeLimit;
-    int minuteRatio = 2;
+    //qint64 fullVideoDurtaion = fileCount * timeLimit;
+    qint64 fullVideoDurtaion = 0;
+    for(int i = 0;i< videoTimeArray.length();i++){
+        fullVideoDurtaion += videoTimeArray[i] / 1000;
+    }
+
     if (Duration || fullVideoDurtaion)
     {
         QTime CurrentTime((Duration / 3600) % (timeLimit / minuteRatio), (Duration / 60) % (timeLimit /minuteRatio), Duration % (timeLimit /minuteRatio), (Duration * 1000) % 1000);
@@ -251,6 +349,8 @@ void MainWindow::updateDuration(qint64 Duration)
         if(IS_FULL_SCREEN && fsSeekbar != nullptr && fsTotalTime != nullptr && fsCurrentTime != nullptr){
             fsTotalTime->setText(TotalTime.toString(Format));
             fsCurrentTime->setText(CurrentTime.toString(Format));
+            ui->label_current_Time->setText(CurrentTime.toString(Format));
+            ui->label_Total_Time->setText(TotalTime.toString(Format));
         }else {
             ui->label_current_Time->setText(CurrentTime.toString(Format));
             ui->label_Total_Time->setText(TotalTime.toString(Format));
@@ -265,14 +365,13 @@ void MainWindow::on_actionOpen_triggered()
     QString filter = videoFileChunkPattern;
     QStringList files = directory.entryList(QStringList() << filter,QDir::Files);
     fileCount = files.length();
-    qDebug()<<files.length() <<" files --- ";
     if(fileCount == 0){
         return;
     }
 
     /////
     // Create a QGraphicsScene
-    scene = new QGraphicsScene();
+    scene = new PlayerControllerWidget();
     view = new CustomGraphicsView();
     view->installEventFilter(this);
     view->setScene(scene);
@@ -288,7 +387,7 @@ void MainWindow::on_actionOpen_triggered()
     QFont font("Arial", 24, QFont::Bold);
     WATERMARK_TEXT->setFont(font);
     WATERMARK_TEXT->setDefaultTextColor(Qt::red);
-    WATERMARK_TEXT->setOpacity(0.3f);
+    WATERMARK_TEXT->setOpacity(0.5f);
     WATERMARK_TEXT->setPos(10, 10); // Position the watermark
     // red recording dot
     scene->addItem(WATERMARK_TEXT);
@@ -330,19 +429,21 @@ void MainWindow::on_actionOpen_triggered()
 }
 
 void MainWindow::on_pushButton_Play_Pause_clicked(){
+    if(pausedForNoInternet) return;
     if(blockedForPiracy) return;
     if(fileCount <= 0) return;
     if(Player->playbackState() == QMediaPlayer::PlaybackState::PlayingState){
         seekbarNewController->pause();
         Player->pause();
+        isPaused = true;
     }else {
         if(Player->playbackState() == QMediaPlayer::PlayingState && mediaStopped == true){
             Player->pause();
         }
         seekbarNewController->resume();
         Player->play();
-        if(IS_FULL_SCREEN){
 
+        if(IS_FULL_SCREEN){
            int videoIndexToJump = getVideoIndexToJump(fsSeekbarController->getValue());
             currentIndex = videoIndexToJump;
             jumpToPosition(fsSeekbarController->getValue());
@@ -352,16 +453,25 @@ void MainWindow::on_pushButton_Play_Pause_clicked(){
             jumpToPosition(seekbarController->getValue());
         }
         mediaStopped = false;
-        IS_Pause = false;
+        isPaused = false;
     }
 }
 
 
 void MainWindow::on_pushButton_Stop_clicked()
 {
-    sliderTime = -1;
+    if(pausedForNoInternet){
+        return;
+    }
+    if(IS_FULL_SCREEN){
+        fsSeekbarController->moveSlider(0);
+        seekbarController->moveSlider(0);
+    } else {
+        seekbarController->moveSlider(0);
+    }
+    //sliderTime = -1;
     currentIndex = -1;
-    IS_Pause = true;
+    //IS_Pause = true;
     mediaStopped = true;
     jumpToPosition(0);
     if(Player != nullptr){
@@ -393,18 +503,49 @@ void MainWindow::on_pushButton_Volume_clicked()
 void MainWindow::on_horizontalSlider_Volume_valueChanged(int value)
 {
     if(Player != NULL && Player->audioOutput() != NULL){
-        Player->audioOutput()->setVolume(value);
+        Player->audioOutput()->setVolume(value / 100.0f);
+        if(value == 0){
+            changeVolumeIconToMute();
+        }else {
+            changeVolumeIconToLowFromMute();
+        }
+    }
+}
+
+void MainWindow::changeVolumeIconToMute(){
+    //ui->label_low_volume->
+    // this is temporary needs to be changed with new mute icon
+    if(IS_FULL_SCREEN){
+        // fsVolumeLowIcon->setStyleSheet(muteStyle);
+        fsVolumeLowIcon->setPixmap(QPixmap(":/mute_volume"));
+        update();
+    }else {
+        ui->label_low_volume->setPixmap( QPixmap(":/mute_volume"));
+        //ui->label_low_volume->setStyleSheet(muteStyle);
+    }
+}
+
+void MainWindow::changeVolumeIconToLowFromMute(){
+    if(IS_FULL_SCREEN){
+        fsVolumeLowIcon->setPixmap(QPixmap(":/volume-low"));
+        //fsVolumeLowIcon->setStyleSheet(lowVolumeStyle);
+        update();
+    }else {
+        ui->label_low_volume->setPixmap(QPixmap(":/volume-low"));
+        //ui->label_low_volume->setStyleSheet(lowVolumeStyle);
     }
 }
 
 
 void MainWindow::on_pushButton_Seek_Backward_clicked()
 {
+    if(pausedForNoInternet) return;
     if(blockedForPiracy) return;
     if(fileCount <= 0) return;
     if(IS_FULL_SCREEN){
         int oldTime = fsSeekbarController->getValue() - 10;
         int remaingTime = timeLimit - (fsSeekbarController->getValue() % timeLimit);
+        userAction = true;
         if(remaingTime >= 110){
             fsSeekbarController->moveSlider(fsSeekbarController->getValue() - 10);
             jumpToPosition(fsSeekbarController->getValue());
@@ -419,6 +560,7 @@ void MainWindow::on_pushButton_Seek_Backward_clicked()
     }else {
         int oldTime = seekbarController->getValue() - 10;
         int remaingTime = timeLimit - (seekbarController->getValue() % timeLimit);
+        userAction = true;
         if(remaingTime >= 110){
             seekbarController->moveSlider(seekbarController->getValue() - 10);
             jumpToPosition(seekbarController->getValue());
@@ -434,11 +576,13 @@ void MainWindow::on_pushButton_Seek_Backward_clicked()
 
 void MainWindow::on_pushButton_Seek_Forward_clicked()
 {
+    if(pausedForNoInternet) return;
     if(blockedForPiracy) return;
     if(fileCount <= 0) return;
     if(IS_FULL_SCREEN){
         int oldTime = fsSeekbarController->getValue() + 10;
         int remaingTime = timeLimit - (fsSeekbarController->getValue() % timeLimit);
+        userAction = true;
         if(remaingTime <= 10){
             fsSeekbarController->moveSlider(fsSeekbarController->getValue() + 10);
             jumpToPosition(fsSeekbarController->getValue());
@@ -448,11 +592,11 @@ void MainWindow::on_pushButton_Seek_Forward_clicked()
             fsSeekbarController->moveSlider(fsSeekbarController->getValue() + 10);
             jumpToPosition(oldTime);
         }
-
     }else {
         int oldTime = seekbarController->getValue() + 10;
         //qDebug()<<"old time"<<oldTime;
         int remaingTime = timeLimit - (seekbarController->getValue() % timeLimit);
+        userAction = true;
         if(remaingTime <= 10){
             seekbarController->moveSlider(seekbarController->getValue() + 10);
             jumpToPosition(seekbarController->getValue());
@@ -466,17 +610,15 @@ void MainWindow::on_pushButton_Seek_Forward_clicked()
 }
 
 void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
-    qDebug()<<"media status"<<status;
-    if(status == QMediaPlayer::MediaStatus::BufferedMedia && mediaStopped == false && !blockedForPiracy){
-        qDebug()<<"is seekable"<<Player->isSeekable();
-        Player->play();
-        qDebug()<<Player->duration()<<"media duration";
-    }
+    //qDebug()<<"media status"<<status;
 
-    if(status == QMediaPlayer::MediaStatus::LoadedMedia && mediaStopped == false && !blockedForPiracy){
+    if(status == QMediaPlayer::MediaStatus::BufferedMedia && !isPaused && mediaStopped == false && !blockedForPiracy && !pausedForNoInternet){
         Player->play();
     }
 
+    if(status == QMediaPlayer::MediaStatus::LoadedMedia && !isPaused && mediaStopped == false && !blockedForPiracy && !pausedForNoInternet){
+        Player->play();
+    }
 
      if(status != QMediaPlayer::MediaStatus::EndOfMedia){
         return;
@@ -487,25 +629,17 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
 
     if(fileCount <= currentIndex) {
         currentIndex = 0;
-        if(IS_FULL_SCREEN){
-            fsSeekbarController->moveSlider(0);
-        }else {
-            seekbarController->moveSlider(0);
-        }
         on_pushButton_Stop_clicked();
-        //seekbarNewController->stop();
     }
-    qDebug() << "passed 2st test" << currentIndex;
-
 
     QDir directory(selectedDirectory);
     QStringList filesToPlay = getFileList(selectedDirectory);
     QFile file(directory.filePath(filesToPlay[currentIndex]));
     if (!file.open(QIODevice::ReadOnly)) {
-        qDebug() << "Failed to open file for reading:" << file.errorString();
+//        qDebug() << "Failed to open file for reading:" << file.errorString();
         return; // or handle the error in some way
     }
-    qDebug()<<"current index to play" << currentIndex;
+//    qDebug()<<"current index to play" << currentIndex;
     QByteArray videoArray = file.readAll();
     file.close(); // Close the file after reading
     openParticularChunk(videoArray,currentIndex);
@@ -535,19 +669,23 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
         position = seekbarController->getValue();
     }
 
-    //qDebug()<<"value of slider "<< position;
     jumpToPosition(position);
 
  }
 
  void MainWindow::on_horizontalSlider_Duration_sliderMoved(){
     qWarning()<<"DANGER"<<"on_horizontalSlider_Duration_sliderMoved";
-     if(IS_FULL_SCREEN){
-        fsSeekbarController->setupTimer(this);
-        seekbarNewController->markGettingDragged();
+
+    if(IS_FULL_SCREEN){
+        if( fsSeekbarController->horizontalSlider_Duration->isSliderDown() || userAction ){
+            fsSeekbarController->setupTimer(this);
+            seekbarNewController->markGettingDragged();
+        }
      }else {
-        seekbarController->setupTimer(this);
-        seekbarNewController->markGettingDragged();
+        if(seekbarController->horizontalSlider_Duration->isSliderDown() || userAction){
+            seekbarController->setupTimer(this);
+            seekbarNewController->markGettingDragged();
+        }
      }
  }
 
@@ -565,6 +703,11 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
      for(int i = 0; i< indexToJump;i++){
          sumToIndex += videoTimeArray[i];
      }
+
+     if((sumToIndex / 1000) >= seekbarController->horizontalSlider_Duration->maximum()){
+         return videoTimeArray[videoTimeArray.size() - 1];
+     }
+
      if(timeSeconds == sumToIndex){
          return 0;
      }
@@ -578,13 +721,14 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
  int MainWindow::getVideoIndexToJump(int timeInSeconds){
      int difference = 1000 * timeInSeconds;
      int indexToReturn = 0;
-     for (int i = 0;i< sizeof(videoTimeArray); i++){
+
+     for (int i = 0;i< videoTimeArray.length(); i++){
          difference -= videoTimeArray[i];
          if(difference < 0){
              indexToReturn = i;
              break;
          }
-         if(difference == 0 && (i == (sizeof(videoTimeArray) - 1))){
+         if(difference == 0 && (i == (videoTimeArray.length() - 1))){
              indexToReturn = i;
              break;
          }
@@ -598,15 +742,19 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
 
  void MainWindow::loadParticalarChunk(int videoIndex,int extraSeek){
 
+     qDebug()<<"called load particular chunk";
      if(blockedForPiracy) return;
-     if(fileCount <= currentIndex) {
+     if(fileCount <= videoIndex) {
          seekbarNewController->pause();
          return;
      }
 
     if(currentIndex == videoIndex){
          Player->setPosition(extraSeek * 1000);
-        qDebug()<<"as not expected";
+        //qDebug()<<"as not expected";
+         if(userAction == true){
+             userAction = false;
+         }
         return;
     }else {
         currentIndex = videoIndex;
@@ -619,7 +767,7 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
         QString fileName = filesToPlay[videoIndex];
         QFile file(directory.filePath(fileName));
         if (!file.open(QIODevice::ReadOnly)) {
-            qDebug() << "Failed to open file for reading:" << file.errorString();
+            //qDebug() << "Failed to open file for reading:" << file.errorString();
             return; // or handle the error in some way
         }
 
@@ -638,26 +786,30 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
         }else {
             seekbarController->setupSeekTimer(this,seekbarController->getValue());
         }
+        if(userAction == true){
+             userAction = false;
+        }
     }
  }
 
 
  void MainWindow::openParticularChunk(QByteArray byteData,int videoIndex){
     // Create a new buffer and set its data
+     qDebug()<<"called open particular chunk";
     QBuffer* newBuffer = new QBuffer();
-    qDebug() << "vid index" << videoIndex;
-    qDebug() << "byte data" << byteData.length();
+    //qDebug() << "vid index" << videoIndex;
+    //qDebug() << "byte data" << byteData.length();
 
     newBuffer->setData(handler->decryptFile(byteData,videoItemList[videoIndex]));
-    qDebug() << " setting data";
+    //qDebug() << " setting data";
 
     // Open the buffer for reading
     if (!newBuffer->open(QIODevice::ReadOnly)) {
-        qDebug() << "Failed to open buffer for reading";
+        //qDebug() << "Failed to open buffer for reading";
         return; // or handle the error in some waa
     }
     Player->setSourceDevice(newBuffer, QUrl("someelse.mp4"));
-    qDebug() << "after here";
+    //qDebug() << "after here";
  }
 
  void MainWindow::resizeEvent(QResizeEvent* event)
@@ -675,25 +827,25 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
 
  void MainWindow::on_pushButton_1x_clicked()
  {
-     playbackRateHandler->chnagePlaybackRate(1.0f);
+     // playbackRateHandler->chnagePlaybackRate(1.0f);
  }
 
 
  void MainWindow::on_pushButton_1p2x_clicked()
  {
-     playbackRateHandler->chnagePlaybackRate(1.2f);
+     // playbackRateHandler->chnagePlaybackRate(1.2f);
  }
 
 
  void MainWindow::on_pushButton_1p5x_clicked()
  {
-     playbackRateHandler->chnagePlaybackRate(1.5f);
+     // playbackRateHandler->chnagePlaybackRate(1.5f);
  }
 
 
  void MainWindow::on_pushButton_2x_clicked()
  {
-     playbackRateHandler->chnagePlaybackRate(2.0f);
+     // playbackRateHandler->chnagePlaybackRate(2.0f);
  }
 
  void MainWindow::fullScreenChnaged(const QRectF &rect){
@@ -702,77 +854,108 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
 
 
  void MainWindow::setupFullScreenControls(){
-     QUiLoader loader;
-     QFile file(":/controls_overlay.ui"); // Ensure the path to your .ui file is correct
-     file.open(QFile::ReadOnly);
-     controls = loader.load(&file);
-     file.close();
+     try {
+         //QUiLoader loader;
+         CustomUILoader loader;
+         QFile file(":/controls_overlay.ui"); // Ensure the path to your .ui file is correct
+         file.open(QFile::ReadOnly);
+         controls = loader.load(&file);
+         file.close();
 
-     // Find the controls in the loaded UI
+         // Find the controls in the loaded UI
 
-     // Add the UI as a proxy widget to the scene
-     QGraphicsProxyWidget *proxy = scene->addWidget(controls);
-     proxy->setGeometry(QRect(0,ui->centralwidget->height() - 200,ui->centralwidget->width(),200));
+         // Add the UI as a proxy widget to the scene
+         QGraphicsProxyWidget *proxy = scene->addWidget(controls);
+         proxy->setGeometry(QRect(0,ui->centralwidget->height() - 200,ui->centralwidget->width(),200));
 
-     fsPlayPauseButton = controls->findChild<QPushButton*>("fs_PushButton_Play_Pause",Qt::FindChildOption::FindChildrenRecursively);
-     fsStopButton = controls->findChild<QPushButton*>("fs_PushButton_Stop",Qt::FindChildOption::FindChildrenRecursively);
-     fsSeekbar = controls->findChild<QSlider*>("fs_HorizontalSlider_Duration",Qt::FindChildOption::FindChildrenRecursively);
-     fsNormalButton = controls->findChild<QPushButton*>("normal_screen_button",Qt::FindChildOption::FindChildrenRecursively);
-     fsTotalTime = controls->findChild<QLabel*>("fs_label_total_time",Qt::FindChildOption::FindChildrenRecursively);
-     fsCurrentTime = controls->findChild<QLabel*>("fs_label_current_time",Qt::FindChildOption::FindChildrenRecursively);
-     fsTenSecForward = controls->findChild<QPushButton*>("fs_PushButton_Seek_Forward",Qt::FindChildOption::FindChildrenRecursively);
-     fsTenSecBackward = controls->findChild<QPushButton*>("fs_PushButton_Seek_Backward",Qt::FindChildOption::FindChildrenRecursively);
-     fsSpeed1x = controls->findChild<QPushButton*>("pushButton_1x",Qt::FindChildOption::FindChildrenRecursively);
-     fsSpeed1p2x = controls->findChild<QPushButton*>("pushButton_1p2x",Qt::FindChildOption::FindChildrenRecursively);
-     fsSpeed1p5x = controls->findChild<QPushButton*>("pushButton_1p5x",Qt::FindChildOption::FindChildrenRecursively);
-     fsSpeed2x = controls->findChild<QPushButton*>("pushButton_2x",Qt::FindChildOption::FindChildrenRecursively);
-     fsSeekbarVolume = controls->findChild<QSlider*>("fs_HorizontalSlider_Volume",Qt::FindChildOption::FindChildrenRecursively);
+         fsPlayPauseButton = controls->findChild<QPushButton*>("fs_PushButton_Play_Pause",Qt::FindChildOption::FindChildrenRecursively);
+         fsStopButton = controls->findChild<QPushButton*>("fs_PushButton_Stop",Qt::FindChildOption::FindChildrenRecursively);
+         fsSeekbar = qobject_cast<CustomSeekbar*>(controls->findChild<QSlider*>("fs_HorizontalSlider_Duration",Qt::FindChildOption::FindChildrenRecursively));
+         fsNormalButton = controls->findChild<QPushButton*>("normal_screen_button",Qt::FindChildOption::FindChildrenRecursively);
+         fsTotalTime = controls->findChild<QLabel*>("fs_label_total_time",Qt::FindChildOption::FindChildrenRecursively);
+         fsCurrentTime = controls->findChild<QLabel*>("fs_label_current_time",Qt::FindChildOption::FindChildrenRecursively);
+         fsTenSecForward = controls->findChild<QPushButton*>("fs_PushButton_Seek_Forward",Qt::FindChildOption::FindChildrenRecursively);
+         fsTenSecBackward = controls->findChild<QPushButton*>("fs_PushButton_Seek_Backward",Qt::FindChildOption::FindChildrenRecursively);
+         fsSpeed1x = controls->findChild<QPushButton*>("pushButton_1x",Qt::FindChildOption::FindChildrenRecursively);
+         fsSpeed1p2x = controls->findChild<QPushButton*>("pushButton_1p2x",Qt::FindChildOption::FindChildrenRecursively);
+         fsSpeed1p5x = controls->findChild<QPushButton*>("pushButton_1p5x",Qt::FindChildOption::FindChildrenRecursively);
+         fsSpeed2x = controls->findChild<QPushButton*>("pushButton_2x",Qt::FindChildOption::FindChildrenRecursively);
+         fsSeekbarVolume = controls->findChild<QSlider*>("fs_HorizontalSlider_Volume",Qt::FindChildOption::FindChildrenRecursively);
+         // Connect the buttons to the media player
+         fsVolumeLowIcon = controls->findChild<QLabel*>("label_2",Qt::FindChildOption::FindChildrenRecursively);
+         /////
+         /// \brief connect
+         FullScreenControlHoverHandler* hoverArea = new FullScreenControlHoverHandler(proxy, QRectF(0,ui->centralwidget->height() - 200,ui->centralwidget->width(),200));
+         hoverArea->setPen(Qt::NoPen);
+         hoverArea->setAcceptHoverEvents(true);
+         hoverArea->setAcceptedMouseButtons(Qt::MouseButton::LeftButton);
+         scene->addItem(hoverArea);
 
-     // Connect the buttons to the media player
-     /////
-     /// \brief connect
-     QGraphicsRectItem* hoverArea = new FullScreenControlHoverHandler(proxy, QRectF(0,ui->centralwidget->height() - 200,ui->centralwidget->width(),200));
-     hoverArea->setPen(Qt::NoPen);
-     hoverArea->setAcceptHoverEvents(true);
-     scene->addItem(hoverArea);
-     ///
-     connect(fsPlayPauseButton, &QPushButton::clicked, this, &MainWindow::on_pushButton_Play_Pause_clicked);
-     connect(fsStopButton, &QPushButton::clicked, this, &MainWindow::on_pushButton_Stop_clicked);
-     connect(fsNormalButton,&QPushButton::clicked,this, &MainWindow::on_normal_button_pressed);
-     ///
+         fsSpeed1x->hide();
+         fsSpeed1p2x->hide();
+         fsSpeed1p5x->hide();
+         fsSpeed2x->hide();
+         ///
+         /// \brief connect
+         ///
+         // connect(hoverArea,&FullScreenControlHoverHandler::doubleClickedScreen,this,&MainWindow::);
+         connect(fsPlayPauseButton, &QPushButton::clicked, this, &MainWindow::on_pushButton_Play_Pause_clicked);
+         connect(fsStopButton, &QPushButton::clicked, this, &MainWindow::on_pushButton_Stop_clicked);
+         connect(fsNormalButton,&QPushButton::clicked,this, &MainWindow::on_normal_button_pressed);
+         ///
 
-     ///////
-    fsSeekbarController = new VideoProgressBarController(fsSeekbar,fileCount);
-    fsSeekbarController->setSliderMaxLimit(timeLimit);
-    fsSeekbarConnection = connect(fsSeekbarController,&VideoProgressBarController::onSeekbarStopedSliding,this,&MainWindow::onSliderStop);
-    fsSeekbarForwardBackwardConnection = connect(fsSeekbarController,&VideoProgressBarController::onSeekbarSecondsTimerEndSliding,this,&MainWindow::seekToRemainingTime);
-    connect(fsSeekbar,&QSlider::sliderReleased,this,&MainWindow::on_horizontalSlider_Duration_sliderMoved);
-    connect(fsSeekbar,&QSlider::actionTriggered,this,&MainWindow::slderClicked);
-    connect(fsTenSecForward, &QPushButton::clicked,this,&MainWindow::on_pushButton_Seek_Forward_clicked);
-    connect(fsTenSecBackward, &QPushButton::clicked,this,&MainWindow::on_pushButton_Seek_Backward_clicked);
+         ///////
+        fsSeekbarController = new VideoProgressBarController(fsSeekbar,fileCount);
+        fsSeekbarController->setSliderMaxLimit(timeLimit);
+        fsSeekbar->setTracking(false);
+        fsSeekbarConnection = connect(fsSeekbarController,&VideoProgressBarController::onSeekbarStopedSliding,this,&MainWindow::onSliderStop);
+        fsSeekbarForwardBackwardConnection = connect(fsSeekbarController,&VideoProgressBarController::onSeekbarSecondsTimerEndSliding,this,&MainWindow::seekToRemainingTime);
+        connect(fsSeekbar,&CustomSeekbar::valueChanged,this,&MainWindow::on_horizontalSlider_Duration_sliderMoved);
+        //connect(fsSeekbar,&CustomSeekbar::actionTriggered,this,&MainWindow::slderClicked);
+        connect(fsTenSecForward, &QPushButton::clicked,this,&MainWindow::on_pushButton_Seek_Forward_clicked);
+        connect(fsTenSecBackward, &QPushButton::clicked,this,&MainWindow::on_pushButton_Seek_Backward_clicked);
+        connect(fsSeekbar,&CustomSeekbar::userClickOnSeekbar,[this](){
+            this->userAction = true;
+        });
+        handlePlayPauseButtonState(Player->playbackState());
+        connect(fsSpeed1x,&QPushButton::clicked,this,&MainWindow::on_pushButton_1x_clicked);
+        connect(fsSpeed1p2x,&QPushButton::clicked,this,&MainWindow::on_pushButton_1p2x_clicked);
+        connect(fsSpeed1p5x,&QPushButton::clicked,this,&MainWindow::on_pushButton_1p5x_clicked);
+        connect(fsSpeed2x,&QPushButton::clicked,this,&MainWindow::on_pushButton_2x_clicked);
+        onPlaybackRateChanged(Player->playbackRate());
+        fsSeekbarVolume->setMaximum(100);
+        fsSeekbarVolume->setMinimum(0);
+        fsSeekbarVolume->setValue(ui->horizontalSlider_Volume->value());
+        fsSeekbarController->moveSlider(seekbarController->getValue());
+        connect(fsSeekbarVolume, &QSlider::valueChanged,this,&MainWindow::on_horizontalSlider_Volume_valueChanged);
+        RECORDING_RED_DOT->updatePosition(20, view->height() - 40);
+        RECORDING_FLASH_LAYER->updateSize(0,0,view->width(),view->height());
+        onlyUpdatePlaybackTimeText(ui->label_current_Time->text());
 
-    handlePlayPauseButtonState(Player->playbackState());
-    connect(fsSpeed1x,&QPushButton::clicked,this,&MainWindow::on_pushButton_1x_clicked);
-    connect(fsSpeed1p2x,&QPushButton::clicked,this,&MainWindow::on_pushButton_1p2x_clicked);
-    connect(fsSpeed1p5x,&QPushButton::clicked,this,&MainWindow::on_pushButton_1p5x_clicked);
-    connect(fsSpeed2x,&QPushButton::clicked,this,&MainWindow::on_pushButton_2x_clicked);
-    onPlaybackRateChanged(Player->playbackRate());
-    fsSeekbarVolume->setMaximum(100);
-    fsSeekbarVolume->setMinimum(0);
-    fsSeekbarVolume->setValue(ui->horizontalSlider_Volume->value());
-    connect(fsSeekbarVolume, &QSlider::valueChanged,this,&MainWindow::handleVolumeChange);
-    RECORDING_RED_DOT->updatePosition(20, view->height() - 40);
-    RECORDING_FLASH_LAYER->updateSize(0,0,view->width(),view->height());
+        //
+        if(fsSeekbarVolume->value() == 0){
+        changeVolumeIconToMute();
+        }
+        if(pausedForNoInternet){
+        fsSeekbar->setDisabled(true);
+        }
+     }catch(std::exception e){
+         qDebug()<<e.what() << "exception";
+     }
  }
 
 
  void MainWindow::on_normal_button_pressed(){
+     if(!IS_FULL_SCREEN) return;
+     int currentSeekValue = fsSeekbarController->getValue();
+     QString currentTimeLabelValue = fsCurrentTime->text();
      scene->removeItem(controls->graphicsProxyWidget());
      this->setWindowState(Qt::WindowNoState);
      ui->controlsSection->show();
      playbackRateHandler->chnagePlaybackRate(Player->playbackRate());
      ui->horizontalSlider_Volume->setValue(fsSeekbarVolume->value());
      handlePlayPauseButtonState(Player->playbackState());
+
 
      videoItem->setSize(QSize(ui->video_section->width(), ui->video_section->height()));
      view->fitInView(videoItem, Qt::KeepAspectRatio);
@@ -792,6 +975,11 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
      QObject::disconnect(fsSeekbarForwardBackwardConnection);
      RECORDING_RED_DOT->updatePosition(20, view->height() - 40);
      RECORDING_FLASH_LAYER->updateSize(0,0,view->width(),view->height());
+     if(pausedForNoInternet){
+         ui->horizontalSlider_Duration->setDisabled(true);
+     }
+     seekbarController->moveSlider(currentSeekValue);
+     onlyUpdatePlaybackTimeText(currentTimeLabelValue);
      update();
  }
 
@@ -814,6 +1002,7 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
 
  void MainWindow::on_pushButton_full_screen_clicked()
  {
+     if(IS_FULL_SCREEN) return;
      if(fileCount == 0) return;
      oldHeight = ui->centralwidget->height();
      oldWidth = ui->centralwidget->width();
@@ -861,16 +1050,13 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
      if(fileCount == 0) return;
      videoItem->setSize(QSize(ui->centralwidget->width(), ui->centralwidget->height()));
      view->setGeometry(0, 0, ui->centralwidget->width(), ui->centralwidget->height());
-
      videoItem->setSize(QSize(ui->centralwidget->width(), ui->centralwidget->height()));
      view->setGeometry(0, 0, ui->video_section->width(), ui->video_section->width());
-
      scene->setSceneRect(0,0,ui->video_section->width(),ui->video_section->width());
 
      /////////
      RECORDING_RED_DOT->updatePosition(20, view->height() - 40);
      RECORDING_FLASH_LAYER->updateSize(0,0,view->width(),view->height());
-
      RECORDING_RED_DOT->updatePosition(20, view->height() - 40);
      RECORDING_FLASH_LAYER->updateSize(0,0,view->width(),view->height());
  }
@@ -899,21 +1085,199 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
      return ret_val;
  }
 
+ // testing code
+
+
+ // Function to extract monitor size from EDID
+ bool MainWindow::GetMonitorSizeFromEDID(const HKEY hDevRegKey, short& WidthMm, short& HeightMm)
+ {
+     DWORD dwType, ActualValueNameLength = NAME_SIZE;
+     TCHAR valueName[NAME_SIZE];
+
+     BYTE EDIDdata[1024];
+     DWORD edidsize = sizeof(EDIDdata);
+
+     for (LONG i = 0, retValue = ERROR_SUCCESS; retValue != ERROR_NO_MORE_ITEMS; ++i)
+     {
+         retValue = RegEnumValue(hDevRegKey, i, valueName,
+                                 &ActualValueNameLength, NULL, &dwType,
+                                 EDIDdata, &edidsize);
+
+         if (retValue != ERROR_SUCCESS || QString::fromWCharArray(valueName) != "EDID")
+             continue;
+
+         WidthMm = ((EDIDdata[68] & 0xF0) << 4) + EDIDdata[66];
+         HeightMm = ((EDIDdata[68] & 0x0F) << 8) + EDIDdata[67];
+         return true; // valid EDID found
+     }
+     return false; // EDID not found
+ }
+
+ // Function to get size for a specific Device ID
+ bool MainWindow::GetSizeForDevID(short& WidthMm, short& HeightMm)
+ {
+     HDEVINFO devInfo = SetupDiGetClassDevsEx(
+         &GUID_CLASS_MONITOR, NULL, NULL,
+         DIGCF_PRESENT, NULL, NULL, NULL);
+
+     if (devInfo == NULL)
+         return false;
+
+     bool bRes = false;
+     for (ULONG i = 0; ERROR_NO_MORE_ITEMS != GetLastError(); ++i)
+     {
+         SP_DEVINFO_DATA devInfoData;
+         memset(&devInfoData, 0, sizeof(devInfoData));
+         devInfoData.cbSize = sizeof(devInfoData);
+
+         if (SetupDiEnumDeviceInfo(devInfo, i, &devInfoData))
+         {
+             HKEY hDevRegKey = SetupDiOpenDevRegKey(devInfo, &devInfoData,
+                                                    DICS_FLAG_GLOBAL, 0, DIREG_DEV, KEY_READ);
+             if (!hDevRegKey || (hDevRegKey == INVALID_HANDLE_VALUE))
+                 continue;
+
+             bRes = GetMonitorSizeFromEDID(hDevRegKey, WidthMm, HeightMm);
+             RegCloseKey(hDevRegKey);
+         }
+     }
+
+     SetupDiDestroyDeviceInfoList(devInfo);
+     return bRes;
+ }
+
+ // Encapsulated function to get monitor siz
+
+ QList<QPair<short, short>> MainWindow::getAllMonitorSizes()
+ {
+     QList<QPair<short, short>> monitorSizes;
+
+     DISPLAY_DEVICE dd;
+     dd.cb = sizeof(dd);
+     DWORD dev = 0;
+
+     QString DeviceID;
+     while (EnumDisplayDevices(0, dev, &dd, 0))
+     {
+         DISPLAY_DEVICE ddMon;
+         ZeroMemory(&ddMon, sizeof(ddMon));
+         ddMon.cb = sizeof(ddMon);
+         DWORD devMon = 0;
+
+         while (EnumDisplayDevices(dd.DeviceName, devMon, &ddMon, 0))
+         {
+             if (ddMon.StateFlags & DISPLAY_DEVICE_ACTIVE &&
+                 !(ddMon.StateFlags & DISPLAY_DEVICE_MIRRORING_DRIVER))
+             {
+                 DeviceID = QString::fromWCharArray(ddMon.DeviceID);
+                 DeviceID = DeviceID.mid(8, DeviceID.indexOf("\\", 9) - 8);
+
+                 short widthMm, heightMm;
+                 if (GetSizeForDevID(widthMm, heightMm))
+                 {
+                     monitorSizes.append(QPair<short, short>(widthMm, heightMm));
+                 }
+             }
+             devMon++;
+             ZeroMemory(&ddMon, sizeof(ddMon));
+             ddMon.cb = sizeof(ddMon);
+         }
+
+         ZeroMemory(&dd, sizeof(dd));
+         dd.cb = sizeof(dd);
+         dev++;
+     }
+#ifdef TEST
+     monitorSizes.removeFirst();
+     return monitorSizes;
+#else
+     return monitorSizes;
+#endif
+ }
+
+ // testing code ends
+
  void MainWindow::onKeyFetchCompleted(QList<VideoData> keyList){
-     if(guiInstance->screens().count() == 1){
+
+     //qDebug()<<"monitors info -- " << info;
+     ScreenDetector detector = ScreenDetector(this);
+     //detector->checkDisiplays();
+     int monitorCount = detector.getMonitorInfoFromDeviceManager();
+     QList<QPair<short, short>> allMonitors =  getAllMonitorSizes();
+//     bool runningOnSecondDisplay = checkProjectOnlyMode();
+     // qDebug()<<"count of monitors "<< monitorCount;
+
+     // qDebug()<<"all monitors " <<allMonitors;
+     // qDebug()<<"all monitors size" <<allMonitors.length();
+     if(allMonitors.length() == 1 && monitorCount == 1){
            videoTimeArray  = QList<int>();
            for (const VideoData &data : keyList) {
-            qDebug() << "Duration:" << data.duration;
-            qDebug() << "Key:" << data.key;
-            qDebug() << "IV:" << data.iv;
-            qDebug() << "File Name:" << data.fileName;
             videoTimeArray.append(data.duration.toInt() * 1000);
            }
            this->videoItemList = keyList;
-           qDebug()<<"vector data"<<videoTimeArray;
            on_actionOpen_triggered();
      }else {
-        showWarningDialog();
+         QTimer::singleShot(0, this, [this]() {
+            showWarningDialog();
+         });
      }
  }
 
+
+ void MainWindow::closeNoInternetDialogAndRetry(){
+     if(noIntentDialog != nullptr){
+         manager->GetKeysForChunk(this->token,this->course_id,this->video_id);
+     }
+ }
+
+ void MainWindow::onNoInternet(){
+     qWarning()<<"in no internet";
+     noIntentDialog = new NoInternetDialog(this);
+     noIntentDialog->show();
+     connect(noIntentDialog,&NoInternetDialog::onNoInternetDialogClose,this,&MainWindow::closeNoInternetDialogAndRetry);
+ }
+
+ void MainWindow::userPlaytimeDataFailed(){
+     Player->pause();
+     pausedForNoInternet = true;
+     if(IS_FULL_SCREEN){
+         fsSeekbar->setDisabled(true);
+     }else {
+        ui->horizontalSlider_Duration->setDisabled(true);
+     }
+     handlePlayPauseButtonState(Player->playbackState());
+     noIntentDialogForTimer = new NoInternetDialog(this);
+     noIntentDialogForTimer->show();
+     connect(noIntentDialogForTimer,&NoInternetDialog::onNoInternetDialogClose,this,&MainWindow::closeWatchTimeNoInternetDialogAndRetry);
+ }
+
+ void MainWindow::closeWatchTimeNoInternetDialogAndRetry(){
+     if(noIntentDialogForTimer != nullptr){
+         QList<qint64> pendingItems = playbackTimer->getPendingItemList();
+         if(pendingItems.length() > 0){
+            qint64 lastPendingItem = pendingItems.first();
+            manager->sendUserWatchTime(token,course_id,video_item_id,video_id,lastPendingItem);
+         }
+     }
+ }
+
+ void MainWindow::userPlaytimeDataSuccess(){
+     playbackTimer->removeLastPendingItem();
+     if(IS_FULL_SCREEN){
+         fsSeekbar->setDisabled(false);
+     }else {
+        ui->horizontalSlider_Duration->setDisabled(false);
+     }
+     if(Player->playbackState() == QMediaPlayer::PlaybackState::PausedState && pausedForNoInternet){
+        Player->play();
+        pausedForNoInternet = false;
+     }
+
+     auto monitorSizes = getAllMonitorSizes();
+     ScreenDetector detector  = ScreenDetector();
+     if(monitorSizes.length() > 1 || detector.getMonitorInfoFromDeviceManager() > 1){
+         QTimer::singleShot(0, this, [this]() {
+            showWarningDialog();
+         });
+     }
+ }

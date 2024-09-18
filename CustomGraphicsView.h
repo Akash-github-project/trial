@@ -3,6 +3,7 @@
 
 #include <QGraphicsView>
 #include <QWheelEvent>
+#include <QObject>
 
 /**
  * @brief The CustomGraphicsView class
@@ -28,6 +29,9 @@ protected:
      *
      * @param event The wheel event to be ignored.
      */
+
+
+
     void wheelEvent(QWheelEvent* event) override {
         // Ignore the wheel event to disable scrolling
         event->ignore();

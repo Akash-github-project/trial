@@ -13,6 +13,7 @@
 #include <QFile>
 #include <QTextStream>
 #include <QDebug>
+#include <windows.h>
 
 
 //#define LOCAL true;
@@ -40,7 +41,11 @@ bool isValidPath(const std::string& path)
 
 void customMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
-    static QFile logFile("C:/Users/BharatCaller/application5.log");
+    QString homeDir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+
+    // Define your log file name
+    QString logFileName = homeDir + "/vidsafe.log";
+    static QFile logFile(logFileName);
     if (!logFile.isOpen()) {
         logFile.open(QIODevice::Append | QIODevice::Text);
     }
@@ -93,7 +98,7 @@ int main(int argc, char *argv[])
     QString returnValue = accessNamedPipes();
     QStringList listOfArgs = returnValue.split("#");
 
-    if(listOfArgs.length() != 5) {
+    if(listOfArgs.length() != 6) {
         qDebug()<<"immproper number of arguments";
         return 1;
     }
@@ -133,6 +138,7 @@ int main(int argc, char *argv[])
     const QString token = listOfArgs[2];
     const QString course_id = listOfArgs[3];
     const QString identifier = listOfArgs[4];
+    const QString video_item_id = listOfArgs[5];
     QString filePath = QString::fromStdString(folderPath);
   #endif
 
@@ -144,8 +150,7 @@ int main(int argc, char *argv[])
      QString filePath = "C:/Users/BharatCaller/AppData/Roaming/VidSafe/com.companyname.vidsafeproject/Data/VidSafeExtracted/66868469da8f5976e34f87bc.zip";
      const QString identifier = "8709031440";
   #endif
-
-    MainWindow w(filePath,token,course_id,video_id,identifier,nullptr);
+    MainWindow w(filePath,token,course_id,video_id,video_item_id,identifier,nullptr);
     w.show();
     return a.exec();
 }

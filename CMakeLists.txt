@@ -22,6 +22,7 @@ find_package(Qt6 REQUIRED COMPONENTS Multimedia)
 find_package(Qt6 REQUIRED COMPONENTS MultimediaWidgets)
 find_package(Qt6 REQUIRED COMPONENTS UiTools )
 find_package(Qt6 REQUIRED COMPONENTS Network )
+find_package(Qt6 REQUIRED COMPONENTS Quick )
 
 add_library(cryptopp STATIC IMPORTED)
 #set_target_properties(LibCrypto PROPERTIES IMPORTED_LOCATION "libs/lib")
@@ -77,6 +78,13 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         apimanager.h apimanager.cpp
         piracy_warning_modal.ui
         warningdialog.h warningdialog.cpp warningdialog.ui
+        customseekbar.h customseekbar.cpp
+        playercontrollerwidget.h playercontrollerwidget.cpp
+        customcontrolswidget.h customcontrolswidget.cpp
+        nointernetdialog.h nointernetdialog.cpp nointernetdialog.ui
+        userplaybacktimertracker.h userplaybacktimertracker.cpp
+        screendetector.h screendetector.cpp
+        customuiloader.h customuiloader.cpp
 
         #fullscreenviews.h fullscreenviews.cpp
 
@@ -99,16 +107,25 @@ else()
     endif()
 endif()
 
+
 target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::Multimedia)
 target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::MultimediaWidgets)
 target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::Network)
 target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::UiTools)
+target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::Quick)
 target_link_libraries(video_player_testing PRIVATE cryptopp)
 #add_definitions(/EHsc)  # Optional for exception handling
 
 if(WIN32)
   include_directories(<Windows.h>)  # Include for SetWindowDisplayAffinity
+  target_link_libraries(video_player_testing PRIVATE setupapi)
+  target_link_libraries(video_player_testing PRIVATE user32)
+  target_link_libraries(video_player_testing PRIVATE wbemuuid)
+  target_link_libraries(video_player_testing PRIVATE dxgi)
+  target_link_libraries(video_player_testing PRIVATE d3d11)
+  target_link_libraries(video_player_testing PRIVATE cfgmgr32)
+
 endif(WIN32)
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
