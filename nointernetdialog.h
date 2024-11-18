@@ -12,9 +12,11 @@ class NoInternetDialog : public QDialog
     Q_OBJECT
 
 signals:
-    void onNoInternetDialogClose();
+    void onNoInternetDialogClose(bool closeWindow);
 public:
+
     explicit NoInternetDialog(QWidget *parent = nullptr);
+    explicit NoInternetDialog(QWidget *parent,QString message);
     ~NoInternetDialog();
 
 private slots:
@@ -22,12 +24,17 @@ private slots:
 
 protected:
     void closeEvent(QCloseEvent * event) override {
-        emit onNoInternetDialogClose();
+        if(message.contains("No Internet connection")){
+            emit onNoInternetDialogClose(false);
+        }else {
+            emit onNoInternetDialogClose(true);
+        }
         QDialog::closeEvent(event);
     }
 
 private:
     Ui::NoInternetDialog *ui;
+    QString message = "No Internet connection";
 };
 
 #endif // NOINTERNETDIALOG_H

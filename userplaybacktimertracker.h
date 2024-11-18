@@ -13,7 +13,7 @@ class UserPlaybackTimerTracker : public QObject {
     Q_OBJECT
 
 public:
-    explicit UserPlaybackTimerTracker(QMediaPlayer *player, QObject *parent = nullptr);
+    explicit UserPlaybackTimerTracker(QMediaPlayer *player,int callbackDuration,QObject *parent = nullptr);
     ~UserPlaybackTimerTracker();
     // Reset the timer
     void reset();
@@ -28,6 +28,8 @@ signals:
 private slots:
     void updatePlayTime();
     void onMediaPlayerStateChanged(QMediaPlayer::PlaybackState state);
+
+public slots:
     void emitMetricsSignal(); // Slot to trigger the metrics signal
 
 private:
@@ -38,6 +40,7 @@ private:
     bool m_isRunning;                // Tracks whether the timer is running
     QMediaPlayer* m_mediaPlayer;     // Pointer to the QMediaPlayer
     QList<qint64> m_pendingTimerSent;
+    int durationToSend = 60;
 };
 
 #endif // USERPLAYBACKTIMERTRACKER_H

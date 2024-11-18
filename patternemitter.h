@@ -11,7 +11,7 @@ class PatternEmitter : public QObject
 public:
     //PatternEmitter(QObject *parent = nullptr);
     PatternEmitter(const std::string &phoneNumber, QObject *parent = nullptr);
-    void start();
+    void start(int duration);
 
 private slots:
     void emitNextSignal();

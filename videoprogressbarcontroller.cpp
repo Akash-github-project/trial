@@ -38,8 +38,9 @@ void VideoProgressBarController::setCurrentIndex(int index){
 
 void VideoProgressBarController::setSliderMaxLimit(qint64 maxDuration){
     videoCompleteDuration = maxDuration * videosCount;
-    horizontalSlider_Duration->setMaximum(videoCompleteDuration);
-    horizontalSlider_Duration->setRange(0, videoCompleteDuration);
+    horizontalSlider_Duration->setMaximum(maxDuration);
+    horizontalSlider_Duration->setRange(0, maxDuration);
+    qDebug()<<"current duration -------- ......." << maxDuration;
 }
 
 void VideoProgressBarController::updateMaxLimit(qint64 maxDuration,int videosCount){

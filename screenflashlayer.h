@@ -7,6 +7,7 @@
 #include <QGraphicsRectItem>
 #include <QRgba64>
 #include <QMouseEvent>
+#include <mizushirushihandora.h>
 
 #define FLASH_TIMER flash_seekbar
 
@@ -18,12 +19,13 @@ signals:
 
     void doubleClickedScreen();
 public:
-    ScreenFlashLayer(QGraphicsScene *scene,const std::string &phoneNumber, QWidget *parent = nullptr);
+    ScreenFlashLayer(QGraphicsScene *scene,const std::string &phoneNumber,FlashMizu * config,QWidget *parent = nullptr);
     void updateSize(qint64 x, qint64 y,qint64 width,qint64 height);
     void startFlasing();
 private:
     QGraphicsRectItem *recLayer;
     PatternEmitter *emitter;
+    FlashMizu * config;
 private:
     void dashLayerColorChange();
     void dotLayerColorChange();

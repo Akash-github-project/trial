@@ -1,27 +1,125 @@
 #include "apimanager.h"
 
+#include <EncryptionHandler.h>
+#include <QFile>
+#include <QSslKey>
+#include <TextDecryptor.h>
+#include <openssl/ec.h>
+#include <openssl/err.h>
+#include <QProcess>
+#include <QString>
+
+
 ApiManager::ApiManager(QObject *parent)
     : QObject{parent}
 {
     manager = new QNetworkAccessManager(this);
+    // api manager setup
+
     userInfoLoggerManager = new QNetworkAccessManager(this);
     connect(manager, &QNetworkAccessManager::finished, this, &ApiManager::onFinished);
     connect(userInfoLoggerManager,&QNetworkAccessManager::finished,this,&ApiManager::onSubmitUserInfo);
+    bsonObjectGenerator = new BSONObjectID(this);
 }
 
-void ApiManager::GetKeysForChunk(QString testToken,QString courseId,QString videoId){
 
-    QNetworkRequest request(QUrl("https://test-server.vidsafe.in/api/generate-video-metadata/"));
+
+QString ApiManager::getMotherboardSerialNumber() {
+    QString serialNumber;
+
+#ifdef Q_OS_WIN
+        // Use wmic on Windows
+    QString command("powershell -Command \"wmic baseboard get serialnumber\"");
+#else
+        // Use dmidecode on Linux/macOS (might require installation)
+    QString command("sudo dmidecode -t baseboard | grep Serial");
+#endif
+    QProcess process;
+    process.start(command);
+    // Wait for the command to finish
+    if (!process.waitForFinished(5000)) { // Timeout after 3 seconds
+        return QString(); // Return empty string
+    }
+    // Check if the process finished normally
+    if (process.exitStatus() == QProcess::NormalExit && process.exitCode() == 0) {
+        QString output = QString::fromUtf8(process.readAllStandardOutput());
+        // Output the raw command output for debugging
+        qDebug() << "Raw output:" << output;
+        // Split the output into lines and remove any empty lines
+        QStringList lines = output.split('\n'); // Split by newline
+        lines.removeAll(QString()); // Remove empty strings
+        // The second line (index 1) should contain the serial number
+        if (lines.size() > 1) {
+            serialNumber = lines[1].trimmed();  // Get the second line and trim whitespace
+        }
+    } else {
+        //qDebug() << "Process error or command failed with exit code:" << process.exitCode() << ", Error:" << process.errorString();
+    }
+    //qDebug() << "Serial number:" << serialNumber;
+    return serialNumber;
+}
+
+
+
+// add ssl
+
+QSslConfiguration ApiManager::getSslConfig(){
+    /// Load the client certificate
+    QFile certFile("client.crt");
+    if (!certFile.open(QIODevice::ReadOnly)) {
+        //qDebug() << "Failed to open certificate file.";
+        return QSslConfiguration::defaultConfiguration();
+    }
+    QSslCertificate clientCert(&certFile);
+    certFile.close();
+
+    // Load the private key with passphrase
+    QFile keyFile("client.key");
+    if (!keyFile.open(QIODevice::ReadOnly)) {
+        //qDebug() << "Failed to open key file.";
+        return QSslConfiguration::defaultConfiguration();
+    }
+    QSslKey clientKey(&keyFile, QSsl::Rsa, QSsl::Pem, QSsl::PrivateKey, "9999"); // Provide passphrase here
+    keyFile.close();
+
+    /// Create SSL configuration
+    QSslConfiguration sslConfig = QSslConfiguration::defaultConfiguration();
+    sslConfig.setLocalCertificate(clientCert);
+    sslConfig.setPrivateKey(clientKey);
+
+    // Ensure SSL protocol is set
+    sslConfig.setProtocol(QSsl::TlsV1_2);
+    // Set SSL configuration in the request
+
+    return sslConfig;
+    /// end api manager setup
+}
+
+void ApiManager::GetKeysForChunk(QString testToken,QString courseId,QString videoId,QString courseItemId){
+     ;
+    QNetworkRequest request(QUrl(url + "/api/generate-video-metadata/"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+    key =  gen.generateECKeyPair();
+    this->clientPublicKey = gen.extractPublicKeyPEM(key);
+
     QString bearer = "Bearer ";
     QString tk = testToken;
     QString token = bearer + tk;
     //qDebug()<<"debug:: latin " <<token.toLatin1();
     request.setRawHeader("Authorization",token.toLatin1());
+    request.setRawHeader("D",getMotherboardSerialNumber().toLatin1() );
+    request.setRawHeader("S","WC");
+    request.setRawHeader("V","241101");
+    request.setRawHeader("Accept","application/json; version=1.0");
+    //
+    // request.setSslConfiguration(getSslConfig());
     QJsonObject json;
     json["course_id"] = courseId;
+    json["p"] = QString::fromStdString(clientPublicKey.toHex().toStdString());
     //qDebug()<<"debug:: " << courseId;
     json["video_id"] = videoId;
+    json["course_item_id"] = courseItemId;
     //qDebug()<<"debug:: " << videoId;
     QJsonDocument jsonDoc(json);
 
@@ -32,49 +130,222 @@ void ApiManager::GetKeysForChunk(QString testToken,QString courseId,QString vide
 }
 
 void ApiManager::onSubmitUserInfo(QNetworkReply* reply){
+    qDebug()<<"in submitUserInfo";
+    qDebug()<<"in submitUserInfo data" << reply->url().toString();
+    int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+
     if(reply->error() == QNetworkReply::NoError && reply->url().toString().contains("api/log-activity")){
         QByteArray response = reply->readAll();
         QJsonDocument document = QJsonDocument::fromJson(response,nullptr);
-        //qDebug()<<"time send response" << document.object();
+        qDebug()<<"time send response" << document.object();
+        this->requestId = "";
+        if(document.object().contains("session_id")){
+            sessionId = document.object().value("session_id").toString();
+            qDebug()<<"session id" << sessionId;
+            return;
+        }
         emit onUserTimeSentSuccess();
     }else {
-        //qWarning() << "Error:" << reply->errorString();
-        emit noNetworkForTimer();
+        QByteArray response = reply->readAll();
+        QJsonDocument document = QJsonDocument::fromJson(response,nullptr);
+        if (reply->error() != QNetworkReply::NoError && statusCode == 412) {
+            QString errorMessage = handlePreconditionFailed(document);
+            emit noNetworkForTimer(errorMessage);
+        }
+        else if (statusCode == 401) {
+            emit noNetworkForTimer("Your session has expired.\nPlease log in again.");
+        }
+        else if (statusCode == 500) {
+            emit noNetworkForTimer("Server error" + QString::number(statusCode) + ".\nPlease contact support.");
+        }else if(statusCode == 443 || statusCode == 0){
+            // qWarning() << "Error:" << reply->errorString();
+            // qDebug() << "No network error from API manager 'onSubmitUserInfo'";
+            emit noNetworkForTimer("No Internet connection.");
+        }
+        else {
+            qWarning() << "Error:" << reply->errorString();
+            // qDebug() << "No network error from API manager 'onSubmitUserInfo'";
+            emit noNetworkForTimer("Server error" + QString::number(statusCode) + ".\nPlease contact support.");
+        }
     }
     reply->deleteLater();
 }
 
+QString ApiManager::handlePreconditionFailed(QJsonDocument errorData){
+    QString errorCode = errorData.object().value("code").toString();
+    QJsonArray errorMessage = errorData.object().value("error_description").toArray();
+    QString message = errorMessage.count() > 0? "Error Code : " + errorCode + "\n" + errorMessage.at(0).toString():"Error Code :" + errorCode +  "\nPlease contact support";
+    return message;
+}
+
+QString ApiManager::getVideoMetadata(QString spk,QString iv,QString text){
+        //EncryptionHandler  handler;
+        TextDecryptor decryptor;
+        QByteArray pmkey = QByteArray::fromHex(spk.toUtf8());
+        //qDebug()<<"pem key" << pmkey.toStdString();
+
+        EC_KEY * serverKey = gen.loadServerPublicKey(pmkey);
+        QByteArray unCompressed = gen.publicKeyToUncompressedHex(serverKey);
+
+        //qDebug()<<"uncompressed key" << unCompressed;
+
+        const EC_GROUP* group = EC_KEY_get0_group(key);
+        EC_POINT* server_point = gen.hexToECPoint(unCompressed, const_cast<EC_GROUP*>(group));
+        /////////
+
+        QByteArray sharedSecretArray = gen.deriveSharedSecret(key, server_point);
+        //qDebug() << "Shared secret derived successfully on client" << sharedSecretArray.toHex();
+
+        QByteArray info = "handshake data"; // Info for HKDF
+        size_t keyLength = 32; // Desired key ength (e.g., 256 bits)
+
+        QByteArray derivedKeyValue ;
+        QByteArray salt;
+        gen.hkdf(salt,sharedSecretArray,info,derivedKeyValue,keyLength);
+
+        //qDebug() << "Derived Key:" << derivedKeyValue.toHex();
+        return decryptor.decryptText(derivedKeyValue.toHex(),iv,text);
+}
+
+QJsonDocument ApiManager::jsonStringToDocument(const QString& jsonString) {
+    // Initialize a QJsonParseError to capture any parsing errors
+    QJsonParseError parseError;
+
+    // Convert the JSON string to a QJsonDocument
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonString.toUtf8(), &parseError);
+
+    // Check for parsing errors
+    if (parseError.error != QJsonParseError::NoError) {
+        qWarning() << "Failed to parse JSON string:" << parseError.errorString();
+        return QJsonDocument(); // Return an empty QJsonDocument if parsing fails
+    }
+
+    return jsonDoc;
+}
 
 void ApiManager::onFinished(QNetworkReply* reply) {
+
+    int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     if (reply->error() == QNetworkReply::NoError && reply->url().toString().contains("api/generate-video-metadata")) {
-        //QByteArray response = reply->readAll();
         QByteArray responseData = reply->readAll();
         QJsonDocument document = QJsonDocument::fromJson(responseData,nullptr);
 
-        //document
-        //qDebug()<<object[""].toString();
-        QJsonValue value = document.object().value("video_metadata");
-        QJsonValue keys = value.toObject().value("metadata");
-        //qDebug()<<"hello---"<<keys.toString();
-        QList<VideoData> resultOfParsing = parseVideoData(keys.toString());
-        //qDebug()<<"Api request done";
-        emit onKeyFetchFinished(resultOfParsing);
-    } else {
-        qWarning() << "Error:" << reply->errorString();
-        emit noNetowrk();
+        QString metadata = document.object().value("metadata").toString();
+        QString spk = document.object().value("spk").toString();
+        QString iv = document.object().value("iv").toString();
+        QString md = this->getVideoMetadata(spk,iv,metadata);
+
+        QJsonDocument jmd = jsonStringToDocument(md);
+        QJsonValue jmv = jmd.object().value("metadata");
+        QList<VideoData> resultOfParsing = parseVideoData(jmv.toString());
+
+
+        // Watermark config generation
+        MizuConfig *config = new MizuConfig();
+        config->log_activity_interval = jmd.object().value("log_activity_interval").toInt();
+        if(config->log_activity_interval == 0){
+            config->log_activity_interval = 60;
+        }
+        qDebug()<<"----- log"<< config->log_activity_interval<< "log interval";
+
+        // Small watermark (sm_wm) config
+        config->smConfig = new SmMizu();
+        qDebug()<<"sm new ---- " << jmd.object().value("sm_wm").toString();
+        auto smConfig = jmd.object().value("sm_wm").toObject();
+        config->smConfig->font_size = smConfig.value("font_size").toInt();
+        config->smConfig->transparent_start = smConfig.value("transparency_start").toInt();
+        config->smConfig->transparent_end = smConfig.value("transparency_end").toInt();
+        config->smConfig->count_per_frame = smConfig.value("count_per_frame").toInt();
+        config->smConfig->interval = smConfig.value("interval").toInt();
+
+        // Convert "colors" array to QStringList
+        QJsonArray colorsArray = smConfig.value("colors").toArray();
+        for (const QJsonValue &colorValue : colorsArray) {
+            config->smConfig->colors.append(colorValue.toString());
+        }
+
+        // Large watermark (lg_wm) config
+        config->lgConfig = new LgMizu();
+        auto lgConfig = jmd.object().value("lg_wm").toObject();
+        config->lgConfig->angle = lgConfig.value("angle").toInt();
+        config->lgConfig->font_size = lgConfig.value("font_size").toInt();
+        config->lgConfig->transparency = lgConfig.value("transparency").toInt();
+        config->lgConfig->width_percent = lgConfig.value("width_percent").toInt();
+        config->lgConfig->color = lgConfig.value("color").toString();
+
+        // flash wm
+
+        config->flConfig = new FlashMizu();
+        auto flConfig = jmd.object().value("flash_wm").toObject();
+        config->flConfig->chn_duration = flConfig.value("chn_duration").toInt();
+        config->flConfig->color = flConfig.value("color").toString();
+        QJsonArray transparencyArray = flConfig.value("transparency").toArray();
+        for (const QJsonValue &transparencyValue : transparencyArray) {
+            config->flConfig->transparency.append(transparencyValue.toInt());
+        }
+
+        config->dflConfig = new DFlashMizu();
+        auto dflConfig = jmd.object().value("d_flash_wm").toObject();
+        config->dflConfig->chn_duration = dflConfig.value("chn_duration").toInt();
+        config->dflConfig->color = dflConfig.value("color").toString();
+        QJsonArray dTransparencyArray = dflConfig.value("transparency").toArray();
+        for (const QJsonValue &transparencyValue : dTransparencyArray) {
+            config->dflConfig->transparency.append(transparencyValue.toInt());
+        }
+
+        // qDebug() << "lgConfig" << QJsonDocument(lgConfig).toJson(QJsonDocument::Compact);
+        // qDebug() << "smConfig" << QJsonDocument(smConfig).toJson(QJsonDocument::Compact);
+        emit onKeyFetchFinished(resultOfParsing,config,jmd.object().value("duration").toInt());
+    } else if(reply->error() != QNetworkReply::NoError && reply->url().toString().contains("api/generate-video-metadata/")){
+        QByteArray response = reply->readAll();
+        QJsonDocument document = QJsonDocument::fromJson(response,nullptr);
+        if(statusCode == 412){
+            QString errorMessage =  handlePreconditionFailed(document);
+            emit noNetwork(errorMessage);
+        }else if(statusCode == 401){
+            emit noNetwork("Your session has expired.\nPlease log in again.");
+        } else if(statusCode == 500){
+            emit noNetwork("Server Error " + QString::number(statusCode) + ".\nPlease contact support");
+        }else if(statusCode == 443 || statusCode == 0){
+            emit noNetworkForTimer("No Internet connection.");
+        }
+        else {
+            qWarning() << "Error:" << reply->errorString();
+            QString message = handlePreconditionFailed(document);
+            qDebug()<<"no netowrk error from API manager 'onSubmitUserInfo'" << statusCode <<"error message" << message;
+
+            emit noNetwork("Server Error " + QString::number(statusCode) + ".\nPlease contact support");
+            // emit noNetwork("No Internet connection");
+        }
+    }else {
+        qWarning() << "Error:" << reply->errorString() << " " << statusCode;
+        emit noNetwork("Server Error " + QString::number(statusCode) + ".\nPlease contact support");
     }
     reply->deleteLater();
 }
 
+
+
+
+
 void ApiManager::sendUserWatchTime(QString token, QString courseId,QString courseItemId,QString videoId,qint64 playbackTime){
-    QNetworkRequest request(QUrl("https://test-server.vidsafe.in/api/log-activity/"));
+    QNetworkRequest request(QUrl(url + "/api/log-activity/"));
+    if(this->requestId.length() == 0) {
+        this->requestId = QString::fromStdString(bsonObjectGenerator->generate());
+    } //
+
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     QString bearer = "Bearer ";
     QString tk = token;
     QString tokenString = bearer + tk;
     //qDebug()<<"debug:: latin " <<tokenString.toLatin1();
+    qDebug()<<"sesion id ----" <<sessionId;
     request.setRawHeader("Authorization",tokenString.toLatin1());
-
+    request.setRawHeader("D",getMotherboardSerialNumber().toLatin1());
+    request.setRawHeader("S","WC");
+    request.setRawHeader("V","241101");
+    request.setRawHeader("Accept","application/json; version=1.0");
+    // request.setSslConfiguration(getSslConfig());
     QJsonObject jsonObject;
 
     // Assign values to the QJsonObject
@@ -83,14 +354,10 @@ void ApiManager::sendUserWatchTime(QString token, QString courseId,QString cours
     jsonObject["course_item_id"] = courseItemId;
     jsonObject["video_id"] = videoId;
     jsonObject["video_watch_duration"] = playbackTime;
+    jsonObject["session_id"] = sessionId;
+    jsonObject["id"] = this->requestId;
 
     qDebug()<< "--------------------------------------------";
-    // qDebug()<<"TIME_API "<< "VIDEO_WATCH";
-    // qDebug()<<"TIME_API course id"<< courseId;
-    // qDebug()<<"TIME_API course item id"<< courseItemId;
-    // qDebug()<<"TIME_API video id"<< videoId;
-    // qDebug()<<"TIME_API watch duration"<< playbackTime;
-    // qDebug()<< "--------------------------------------------";
     // Create and format the activity datetime
     QDateTime dateTime = QDateTime::currentDateTime(); // Replace with the actual datetime if needed
     QString formattedDateTime = dateTime.toString("yyyy-MM-dd HH:mm:ss");
@@ -98,9 +365,9 @@ void ApiManager::sendUserWatchTime(QString token, QString courseId,QString cours
     QJsonDocument jsonDoc(jsonObject);
     // Convert QJsonDocument to QByteArray
     QByteArray postData = jsonDoc.toJson();
+    qDebug()<<"sending user watch time";
     userInfoLoggerManager->post(request, postData);
 }
-
 
 
 QList<VideoData> ApiManager::parseVideoData(const QString &data) {
@@ -133,5 +400,39 @@ QList<VideoData> ApiManager::parseVideoData(const QString &data) {
     //qDebug()<<"end data parsing";
 
     return resultList;
+}
+
+
+void ApiManager::getSessionId(QString token, QString courseId,QString courseItemId,QString videoId){
+    QNetworkRequest request(QUrl(url + "/api/log-activity/"));
+    //
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    QString bearer = "Bearer ";
+    QString tk = token;
+    QString tokenString = bearer + tk;
+    //qDebug()<<"debug:: latin " <<tokenString.toLatin1();
+    request.setRawHeader("Authorization",tokenString.toLatin1());
+    request.setRawHeader("D",getMotherboardSerialNumber().toLatin1());
+    request.setRawHeader("S","WC");
+    request.setRawHeader("V","241001");
+    request.setRawHeader("Accept","application/json; version=1.0");
+    // request.setSslConfiguration(getSslConfig());
+    QJsonObject jsonObject;
+
+    // Assign values to the QJsonObject
+    jsonObject["activity_type"] = "VIDEO_OPEN";
+    jsonObject["course_id"] = courseId;
+    jsonObject["course_item_id"] = courseItemId;
+    jsonObject["video_id"] = videoId;
+
+    qDebug()<< "--------------------------------------------";
+    // Create and format the activity datetime
+    QDateTime dateTime = QDateTime::currentDateTime(); // Replace with the actual datetime if needed
+    QString formattedDateTime = dateTime.toString("yyyy-MM-dd HH:mm:ss");
+    jsonObject["activity_datetime"] = formattedDateTime;
+    QJsonDocument jsonDoc(jsonObject);
+    // Convert QJsonDocument to QByteArray
+    QByteArray postData = jsonDoc.toJson();
+    userInfoLoggerManager->post(request, postData);
 }
 

@@ -1,9 +1,10 @@
 #include "screenflashlayer.h"
 
 
-ScreenFlashLayer::ScreenFlashLayer(QGraphicsScene *scene,const std::string &phoneNumber,QWidget *parent)
+ScreenFlashLayer::ScreenFlashLayer(QGraphicsScene *scene,const std::string &phoneNumber,FlashMizu * config,QWidget *parent)
     : QGraphicsView(scene, parent) {
-    emitter = new PatternEmitter(phoneNumber, parent);
+    this->config = config;
+    emitter = new PatternEmitter(phoneNumber,parent);
     recLayer = new QGraphicsRectItem(0,0, scene->itemsBoundingRect().width(), scene->itemsBoundingRect().height());
     scene->addItem(recLayer);
     recLayer->setPen(Qt::NoPen);
@@ -12,36 +13,35 @@ ScreenFlashLayer::ScreenFlashLayer(QGraphicsScene *scene,const std::string &phon
     connect(emitter,&PatternEmitter::emitSpace,this,&ScreenFlashLayer::spaceLayerColorChange);
 }
 
-
-void ScreenFlashLayer::dashLayerColorChange(){
-    QColor dashColor = QColor();
-    dashColor.setRed(217);
-    dashColor.setGreen(217);
-    dashColor.setBlue(217);
-    dashColor.setAlpha(30);
+void ScreenFlashLayer::dotLayerColorChange(){
+    QColor dashColor = QColor(config->color);
+    // dashColor.setRed(225);
+    // dashColor.setGreen(225);
+    // dashColor.setBlue(225);
+    dashColor.setAlpha(config->transparency[0]);
     recLayer->setBrush(QBrush(dashColor));
 }
 
-void ScreenFlashLayer::dotLayerColorChange(){
-    QColor dashColor = QColor();
-    dashColor.setRed(225);
-    dashColor.setGreen(225);
-    dashColor.setBlue(225);
-    dashColor.setAlpha(30);
+void ScreenFlashLayer::dashLayerColorChange(){
+    QColor dashColor = QColor(config->color);
+    // dashColor.setRed(217);
+    // dashColor.setGreen(217);
+    // dashColor.setBlue(217);
+    dashColor.setAlpha(config->transparency[1]);
     recLayer->setBrush(QBrush(dashColor));
 }
 
 void ScreenFlashLayer::spaceLayerColorChange(){
-    QColor dashColor = QColor();
-    dashColor.setRed(255);
-    dashColor.setGreen(255);
-    dashColor.setBlue(255);
-    dashColor.setAlpha(30);
+    QColor dashColor = QColor(config->color);
+    // dashColor.setRed(255);
+    // dashColor.setGreen(255);
+    // dashColor.setBlue(255);
+    dashColor.setAlpha(config->transparency[2]);
     recLayer->setBrush(QBrush(dashColor));
 }
 
 void ScreenFlashLayer::startFlasing(){
-    emitter->start();
+    emitter->start(config->chn_duration);
 }
 
 void ScreenFlashLayer::updateSize(qint64 x, qint64 y,qint64 width,qint64 height) {

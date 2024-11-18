@@ -8,6 +8,7 @@
 #include "screenflashlayer.h"
 #include "apimanager.h"
 #include "nointernetdialog.h"
+#include "mizushirushihandora.h"
 
 #include <QMainWindow>
 #include <QMediaPlayer>
@@ -46,6 +47,7 @@
 #include <wbemidl.h>
 #include <setupapi.h>
 #include <screendetector.h>
+// #include <SecureMemory.h>
 
 #define NAME_SIZE 128
 #pragma comment(lib, "setuplib.lib")
@@ -53,6 +55,7 @@
 #pragma comment(lib, "wbemuuid.lib")
 
 #define WATERMARK_TEXT random_video
+#define WATERMARK_TEXT1 random_video_d
 #define RECORDING_RED_DOT random_seekbar
 #define RECORDING_FLASH_LAYER random_seekbar_slider
 
@@ -69,10 +72,10 @@ public:
     MainWindow(QString filePath,QString token,QString course_id,QString video_id,QString video_item_id,QString identifier,QWidget *parent = nullptr);
     ~MainWindow();
     // void makeButtonRound(QPushButton* button);
-     struct MonitorInfo {
+    struct MonitorInfo {
         std::string deviceName;
         DEVMODE devMode;
-     };
+    };
     void resizeEvent(QResizeEvent *event);
     void slderClicked(int action);
     void setupFullScreenControls();
@@ -80,13 +83,14 @@ public:
     int getVideoIndexToJump(int timeInSeconds);
     void onlyUpdatePlaybackTimeText(QString playbackDurationString);
     void keyPressEvent(QKeyEvent *event) override;
-    void closeNoInternetDialogAndRetry();
+    void closeNoInternetDialogAndRetry(bool closeWindow);
     void changeVolumeIconToMute();
     void changeVolumeIconToLowFromMute();
 
 public:
     const GUID GUID_CLASS_MONITOR = {0x4d36e96e, 0xe325, 0x11ce, 0xbf, 0xc1, 0x08, 0x00, 0x2b, 0xe1, 0x03, 0x18};
     PlayerControllerWidget *scene;
+    MizuShirushiHandora* watermarkHandler;
     QMediaPlayer *Player;
     // Create a QGraphicsScene
     CustomGraphicsView *view = nullptr;
@@ -101,6 +105,7 @@ public:
     int minuteRatio = 2;
     int oldHeight = 0;
     int oldWidth = 0;
+    int durationAverageInSeconds = 60;
     int detectMonitors();
     void enumerateDisplays();
     bool userAction = false;
@@ -108,8 +113,13 @@ public:
     bool GetSizeForDevID(short &WidthMm, short &HeightMm);
     bool GetMonitorSizeFromEDID(const HKEY hDevRegKey, short &WidthMm, short &HeightMm);
     QList<QPair<short, short>> getAllMonitorSizes();
+    int getSumOfAllVideosTimeTillNow(int index);
+    void caliberateVideo();
+
+private:
+    // SecureMemory * mem = nullptr;
 public slots:
-    void userPlaytimeDataFailed();
+    void userPlaytimeDataFailed(QString message);
     void userPlaytimeDataSuccess();
     void sendTimeToServer(qint64 playTimeInSeconds);
     void fullScreenChnaged(const QRectF &rect);
@@ -119,7 +129,7 @@ public slots:
     void handleWindowModesTransitions(bool isFullScreen);
     void durationChanged(qint64 duration);
     void positionChanged(qint64 duration);
-    void on_actionOpen_triggered();
+    void on_actionOpen_triggered(MizuConfig *config);
     void on_pushButton_Play_Pause_clicked();
     void on_pushButton_Stop_clicked();
     void on_pushButton_Volume_clicked();
@@ -134,10 +144,10 @@ public slots:
     void on_pushButton_1p5x_clicked();
     void on_pushButton_2x_clicked();
     void on_pushButton_full_screen_clicked();
-    void onKeyFetchCompleted(QList<VideoData> keyList);
-    void onNoInternet();
+    void onKeyFetchCompleted(QList<VideoData> keyList, MizuConfig * config, int fullVideoDuration);
+    void onNoInternet(QString message);
     QStringList getFileList(const QString& directoryPath);
-    void closeWatchTimeNoInternetDialogAndRetry();
+    void closeWatchTimeNoInternetDialogAndRetry(bool closeWindow);
 private:
     bool IS_Pause = true;
     bool IS_Muted = false;
@@ -162,7 +172,8 @@ private:
     //FullScreenViews  *fullScreenViews = nullptr;
     SeekbarProgressController *seekbarNewController;
     // Create a QGraphicsVideoItem
-    QList<int> videoTimeArray;
+    QList<qint64> videoTimeArray;
+    qint64 fullVideoDuration = 0;
     qint64 mDuration;
     QString video_id = "";
     QString course_id = "";
@@ -178,6 +189,8 @@ private:
     VideoProgressBarController *seekbarController = nullptr;
     EncryptionHandler *handler = nullptr;
     QGraphicsTextItem *WATERMARK_TEXT = nullptr;
+    QGraphicsTextItem *WATERMARK_TEXT1 = nullptr;
+
     RedDotRecording *RECORDING_RED_DOT = nullptr;
     ScreenFlashLayer *RECORDING_FLASH_LAYER = nullptr;
     QMetaObject::Connection seekbarConnection ;
@@ -192,6 +205,7 @@ private:
     QPushButton *fsSpeed1p2x = nullptr;
     QPushButton *fsSpeed1p5x = nullptr;
     QPushButton *fsSpeed2x = nullptr;
+    QLabel *fsPlaybackLabel = nullptr;
     CustomSeekbar *fsSeekbar = nullptr;
     QSlider *fsSeekbarVolume = nullptr;
     QLabel *fsCurrentTime = nullptr;
@@ -304,7 +318,11 @@ protected:
                 qDebug() << "Window normal";
                 //handleUserManualUnMaximize();
                 // Handle normal state
-
+            }
+            else if (this->windowState() & Qt::WindowMinimized) {
+                if(Player != nullptr && Player->isPlaying()){
+                    on_pushButton_Play_Pause_clicked();
+                }
             }
         }
         QMainWindow::changeEvent(event);
@@ -312,4 +330,5 @@ protected:
 
     bool event(QEvent *event) override;
 };
+
 #endif // MAINWINDOW_H

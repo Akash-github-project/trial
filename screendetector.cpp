@@ -1,5 +1,5 @@
 #include "screendetector.h"
-#define TEST 0
+// #define TEST 0
 
 ScreenDetector::ScreenDetector(QObject *parent)
     : QObject{parent}

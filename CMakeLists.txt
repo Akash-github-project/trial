@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(video_player_testing VERSION 0.1 LANGUAGES CXX)
+project(VidSafePlayer VERSION 0.1 LANGUAGES CXX)
 #cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -12,6 +12,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+#find_package(ZLIB REQUIRED)
 
 FIND_PACKAGE( Qt6Multimedia REQUIRED )
 FIND_PACKAGE( Qt6MultimediaWidgets REQUIRED )
@@ -24,18 +25,43 @@ find_package(Qt6 REQUIRED COMPONENTS UiTools )
 find_package(Qt6 REQUIRED COMPONENTS Network )
 find_package(Qt6 REQUIRED COMPONENTS Quick )
 
+
 add_library(cryptopp STATIC IMPORTED)
+add_library(openssl STATIC IMPORTED)
+add_library(crypto STATIC IMPORTED)
+add_library(libz STATIC IMPORTED)
 #set_target_properties(LibCrypto PROPERTIES IMPORTED_LOCATION "libs/lib")
 set_target_properties( # Specifies the target library.
                        cryptopp
-
                        # Specifies the parameter you want to define.
                        PROPERTIES IMPORTED_LOCATION
-
                        # Provides the path to the library you want to import.
                        ${CMAKE_CURRENT_SOURCE_DIR}/libs/lib/libcryptopp.a )
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/include/cryptopp/)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/include/cryptopp/)
+set_target_properties( # Specifies the target library.
+                       libz
+                       # Specifies the parameter you want to define.
+                       PROPERTIES IMPORTED_LOCATION
+                       # Provides the path to the library you want to import.
+                       ${CMAKE_CURRENT_SOURCE_DIR}/libs/lib/libz.a )
+#openssl
+set_target_properties( # Specifies the target library.
+                       openssl
+                       # Specifies the parameter you want to define.
+                       PROPERTIES IMPORTED_LOCATION
+                       # Provides the path to the library you want to import.
+                       ${CMAKE_CURRENT_SOURCE_DIR}/libs/lib/libssl.a )
+
+set_target_properties( # Specifies the target library.
+                        crypto
+                       # Specifies the parameter you want to define.
+                       PROPERTIES IMPORTED_LOCATION
+                       # Provides the path to the library you want to import.
+                       ${CMAKE_CURRENT_SOURCE_DIR}/libs/lib/libcrypto.a )
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/include/openssl/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/include/)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 
@@ -48,8 +74,9 @@ set(PROJECT_SOURCES
         mainwindow.ui
 )
 
+
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(video_player_testing
+    qt_add_executable(VidSafePlayer
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
         videoprogressbarcontroller.h videoprogressbarcontroller.cpp
@@ -85,6 +112,12 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         userplaybacktimertracker.h userplaybacktimertracker.cpp
         screendetector.h screendetector.cpp
         customuiloader.h customuiloader.cpp
+        mizushirushihandora.h mizushirushihandora.cpp
+        sharekeygenerator.h sharekeygenerator.cpp
+        textdecryptor.h textdecryptor.cpp
+        bsonobjectid.h bsonobjectid.cpp
+        customgraphicstextitem.h customgraphicstextitem.cpp
+        # securememory.h securememory.cpp
 
         #fullscreenviews.h fullscreenviews.cpp
 
@@ -95,59 +128,64 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
 # For more information, see https://doc.qt.io/qt-6/qt-add-executable.html#target-creation
 else()
     if(ANDROID)
-        add_library(video_player_testing SHARED
+        add_library(VidSafePlayer SHARED
             ${PROJECT_SOURCES}
         )
 # Define properties for Android with Qt 5 after find_package() calls as:
 #    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else()
-        add_executable(video_player_testing
+        add_executable(VidSafePlayer
             ${PROJECT_SOURCES}
         )
     endif()
 endif()
 
-
-target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
-target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::Multimedia)
-target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::MultimediaWidgets)
-target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::Network)
-target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::UiTools)
-target_link_libraries(video_player_testing PRIVATE Qt${QT_VERSION_MAJOR}::Quick)
-target_link_libraries(video_player_testing PRIVATE cryptopp)
+target_link_libraries(VidSafePlayer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(VidSafePlayer PRIVATE Qt${QT_VERSION_MAJOR}::Multimedia)
+target_link_libraries(VidSafePlayer PRIVATE Qt${QT_VERSION_MAJOR}::MultimediaWidgets)
+target_link_libraries(VidSafePlayer PRIVATE Qt${QT_VERSION_MAJOR}::Network)
+target_link_libraries(VidSafePlayer PRIVATE Qt${QT_VERSION_MAJOR}::UiTools)
+target_link_libraries(VidSafePlayer PRIVATE Qt${QT_VERSION_MAJOR}::Quick)
+target_link_libraries(VidSafePlayer PRIVATE cryptopp)
+target_link_libraries(VidSafePlayer PRIVATE openssl)
+target_link_libraries(VidSafePlayer PRIVATE crypto)
+target_link_libraries(VidSafePlayer PRIVATE libz)
 #add_definitions(/EHsc)  # Optional for exception handling
 
 if(WIN32)
   include_directories(<Windows.h>)  # Include for SetWindowDisplayAffinity
-  target_link_libraries(video_player_testing PRIVATE setupapi)
-  target_link_libraries(video_player_testing PRIVATE user32)
-  target_link_libraries(video_player_testing PRIVATE wbemuuid)
-  target_link_libraries(video_player_testing PRIVATE dxgi)
-  target_link_libraries(video_player_testing PRIVATE d3d11)
-  target_link_libraries(video_player_testing PRIVATE cfgmgr32)
+  target_link_libraries(VidSafePlayer PRIVATE setupapi)
+  target_link_libraries(VidSafePlayer PRIVATE user32)
+  target_link_libraries(VidSafePlayer PRIVATE wbemuuid)
+  target_link_libraries(VidSafePlayer PRIVATE dxgi)
+  target_link_libraries(VidSafePlayer PRIVATE d3d11)
+  target_link_libraries(VidSafePlayer PRIVATE cfgmgr32)
 
 endif(WIN32)
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.
 if(${QT_VERSION} VERSION_LESS 6.6.3)
-  set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.example.video_player_testing)
+  set(BUNDLE_ID_OPTION MACOSX_BUNDLE_GUI_IDENTIFIER com.player.vidsafeplayer)
 endif()
-set_target_properties(video_player_testing PROPERTIES
+
+
+set_target_properties(VidSafePlayer PROPERTIES
     ${BUNDLE_ID_OPTION}
     MACOSX_BUNDLE_BUNDLE_VERSION ${PROJECT_VERSION}
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
+    OUTPUT_NAME "VajiramVidsafePlayer"
 )
 
 include(GNUInstallDirs)
-install(TARGETS video_player_testing
+install(TARGETS VidSafePlayer
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
 if(QT_VERSION_MAJOR EQUAL 6)
-    qt_finalize_executable(video_player_testing)
+    qt_finalize_executable(VidSafePlayer)
 endif()

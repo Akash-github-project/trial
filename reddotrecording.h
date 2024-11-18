@@ -8,16 +8,18 @@
 #include <QGraphicsItemGroup>
 #include <QTimer>
 #include <patternemitter.h>
+#include <mizushirushihandora.h>
 #define BLINK_TIMER djLighting
 
 class RedDotRecording : public QGraphicsView
 {
     Q_OBJECT
 public:
-    RedDotRecording(QGraphicsScene *scene,const std::string phoneNumber ,QWidget *parent = nullptr);
+    RedDotRecording(QGraphicsScene *scene,const std::string phoneNumber,DFlashMizu * config,QWidget *parent = nullptr);
     void updatePosition(qint64 x, qint64 y);
     void startFlasing();
 private:
+    DFlashMizu * config;
     QTimer *BLINK_TIMER;
     QGraphicsItemGroup *recGroup;
     QGraphicsEllipseItem *redDot;

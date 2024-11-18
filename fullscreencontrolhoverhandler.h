@@ -18,6 +18,9 @@ class FullScreenControlHoverHandler :public QObject, public QGraphicsRectItem
 {
    Q_OBJECT
    Q_PROPERTY(qreal customOpacity READ customOpacity WRITE setCustomOpacity)
+
+private:
+    QGraphicsWidget* controlledWidget;
 public:
     explicit FullScreenControlHoverHandler(QObject *parent = nullptr);
     FullScreenControlHoverHandler(QGraphicsWidget* widget, const QRectF& rect)
@@ -55,8 +58,6 @@ protected:
         event->accept();
     }
 
-private:
-    QGraphicsWidget* controlledWidget;
 };
 
 #endif // FULLSCREENCONTROLHOVERHANDLER_H

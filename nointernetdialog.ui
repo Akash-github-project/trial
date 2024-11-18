@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>382</width>
-    <height>214</height>
+    <width>497</width>
+    <height>258</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
@@ -17,17 +23,17 @@
    <string notr="true">background-color: rgb(170, 0, 0);</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
-   <item alignment="Qt::AlignHCenter">
+   <item>
     <widget class="QFrame" name="verticalFrame">
      <property name="minimumSize">
       <size>
-       <width>200</width>
+       <width>400</width>
        <height>0</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
-       <width>300</width>
+       <width>747474</width>
        <height>200</height>
       </size>
      </property>
@@ -55,11 +61,11 @@
        </widget>
       </item>
       <item alignment="Qt::AlignHCenter">
-       <widget class="QLabel" name="label_3">
+       <widget class="QLabel" name="message">
         <property name="maximumSize">
          <size>
-          <width>400</width>
-          <height>30</height>
+          <width>83834</width>
+          <height>737733</height>
          </size>
         </property>
         <property name="font">
@@ -73,6 +79,12 @@
         </property>
         <property name="text">
          <string>No Internet Connection</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
         </property>
        </widget>
       </item>

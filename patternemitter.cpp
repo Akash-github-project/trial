@@ -22,8 +22,8 @@ PatternEmitter::PatternEmitter(const std::string &phoneNumber, QObject *parent)
     connect(PATTERN_TIMER, &QTimer::timeout, this, &PatternEmitter::emitNextSignal);
 }
 
-void PatternEmitter::start() {
-    PATTERN_TIMER->start(1000); // Adjust timing for dot length
+void PatternEmitter::start(int duration) {
+    PATTERN_TIMER->start(duration * 1000); // Adjust timing for dot length
 }
 
 void PatternEmitter::emitNextSignal() {

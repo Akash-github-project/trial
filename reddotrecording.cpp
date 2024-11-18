@@ -2,7 +2,7 @@
 
 //RedDotRecording::RedDotRecording() {}
 
-RedDotRecording::RedDotRecording(QGraphicsScene *scene,const std::string phoneNumber, QWidget *parent)
+RedDotRecording::RedDotRecording(QGraphicsScene *scene,const std::string phoneNumber,DFlashMizu * config, QWidget *parent)
     : QGraphicsView(scene, parent) {
 
     emitter = new PatternEmitter(phoneNumber, parent);
@@ -15,26 +15,17 @@ RedDotRecording::RedDotRecording(QGraphicsScene *scene,const std::string phoneNu
     // BLINK_TIMER = new QTimer(parent);
     // BLINK_TIMER->setInterval(1000);
     redDot = new QGraphicsEllipseItem(0,0, 20, 20);
-    redDot->setBrush(QBrush(Qt::red));
+    redDot->setBrush(QBrush(QColor(config->color)));
 
     QGraphicsTextItem *recText = new QGraphicsTextItem("REC");
     recText->setPos((redDot->boundingRect().width() - recText->boundingRect().width()) / 2, redDot->boundingRect().height());
-    recText->setDefaultTextColor(Qt::red);
+    recText->setDefaultTextColor(QColor(config->color));
 
     recGroup = new QGraphicsItemGroup();
     recGroup->addToGroup(redDot);
     recGroup->addToGroup(recText);
     scene->addItem(recGroup);
-
-    // BLINK_TIMER->start();
-    // connect(BLINK_TIMER,&QTimer::timeout,[&]{
-    //     if(this->isDeepRed){
-    //         redDot->setBrush(QBrush(Qt::red));
-    //     } else {
-    //         redDot->setBrush(QBrush(Qt::darkRed));
-    //     }
-    //     this->isDeepRed = !this->isDeepRed;
-    // });
+    this->config = config;
     startFlasing();
 }
 
@@ -44,26 +35,24 @@ void RedDotRecording::updatePosition(qint64 x, qint64 y) {
     recGroup->setPos(x, y);
 }
 
-
-void RedDotRecording::dashLayerColorChange(){
-    QColor dashColor = QColor(Qt::red);
-    dashColor.setAlpha(30);
+void RedDotRecording::dotLayerColorChange(){
+    QColor dashColor = QColor(config->color);
+    dashColor.setAlpha(config->transparency[0]);
     redDot->setBrush(QBrush(dashColor));
 }
 
-void RedDotRecording::dotLayerColorChange(){
-    QColor dashColor = QColor(Qt::red);
-    dashColor.setAlpha(60);
+void RedDotRecording::dashLayerColorChange(){
+    QColor dashColor = QColor(config->color);
+    dashColor.setAlpha(config->transparency[1]);
     redDot->setBrush(QBrush(dashColor));
 }
 
 void RedDotRecording::spaceLayerColorChange(){
-    QColor dashColor = QColor(Qt::red);
-    dashColor.setAlpha(90);
+    QColor dashColor = QColor(config->color);
+    dashColor.setAlpha(config->transparency[2]);
     redDot->setBrush(QBrush(dashColor));
 }
 
 void RedDotRecording::startFlasing(){
-    emitter->start();
-    //recGroup->setPos(0,recGroup->boundingRect().height() - 40);
+    emitter->start(config->chn_duration);
 }

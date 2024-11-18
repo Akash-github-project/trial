@@ -71,11 +71,12 @@ void customMessageHandler(QtMsgType type, const QMessageLogContext &context, con
         break;
     }
 
+
     out << msg << Qt::endl;
 }
 
 QString accessNamedPipes(){
-    QFile pipe("\\\\.\\pipe\\testing");
+    QFile pipe("\\\\.\\pipe\\VideoPlayerStream");
     if (!pipe.open(QIODevice::ReadOnly)) {
         qDebug() << "Failed to open pipe.";
         return QString("");
@@ -91,7 +92,7 @@ QString accessNamedPipes(){
 
 int main(int argc, char *argv[])
 {
-    qInstallMessageHandler(customMessageHandler);
+    // qInstallMessageHandler(customMessageHandler);
     QApplication a(argc, argv);
 
   #ifndef LOCAL
@@ -113,7 +114,7 @@ int main(int argc, char *argv[])
     }
 
     // If the path is valid, proceed with further operations
-    qDebug() << "Folder path is valid: " << folderPath ;
+    qDebug() << "Folder path is valid: " << folderPath;
 
     // Example operation: Listing the contents of the directory
     try
