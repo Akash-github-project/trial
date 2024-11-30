@@ -30,6 +30,7 @@ add_library(cryptopp STATIC IMPORTED)
 add_library(openssl STATIC IMPORTED)
 add_library(crypto STATIC IMPORTED)
 add_library(libz STATIC IMPORTED)
+add_library(libSoundTouch STATIC IMPORTED)
 #set_target_properties(LibCrypto PROPERTIES IMPORTED_LOCATION "libs/lib")
 set_target_properties( # Specifies the target library.
                        cryptopp
@@ -58,7 +59,15 @@ set_target_properties( # Specifies the target library.
                        # Specifies the parameter you want to define.
                        PROPERTIES IMPORTED_LOCATION
                        # Provides the path to the library you want to import.
-                       ${CMAKE_CURRENT_SOURCE_DIR}/libs/lib/libcrypto.a )
+                       ${CMAKE_CURRENT_SOURCE_DIR}/libs/lib/libcrypto.a)
+
+set_target_properties( # Specifies the target library.
+                        libSoundTouch
+                       # Specifies the parameter you want to define.
+                       PROPERTIES IMPORTED_LOCATION
+                       # Provides the path to the library you want to import.
+                       ${CMAKE_CURRENT_SOURCE_DIR}/libs/lib/libSoundTouch.a)
+
 #include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/include/openssl/)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/include/)
 
@@ -117,6 +126,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         textdecryptor.h textdecryptor.cpp
         bsonobjectid.h bsonobjectid.cpp
         customgraphicstextitem.h customgraphicstextitem.cpp
+        customaudiodevice.h customaudiodevice.cpp
         # securememory.h securememory.cpp
 
         #fullscreenviews.h fullscreenviews.cpp
@@ -150,6 +160,7 @@ target_link_libraries(VidSafePlayer PRIVATE cryptopp)
 target_link_libraries(VidSafePlayer PRIVATE openssl)
 target_link_libraries(VidSafePlayer PRIVATE crypto)
 target_link_libraries(VidSafePlayer PRIVATE libz)
+target_link_libraries(VidSafePlayer PRIVATE libSoundTouch)
 #add_definitions(/EHsc)  # Optional for exception handling
 
 if(WIN32)

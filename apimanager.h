@@ -31,12 +31,17 @@ class ApiManager : public QObject
     Q_OBJECT
 
 private:
+
     int * lisgOfKeys;
     QString requestId = "";
+    QString	credentials = "";
+    QString token = "";
 #ifdef PROD
     QString url = "https://secure.vidsafe.in";
+    QString appVersion = "241101";
 #else
    QString url = "https://test-server.vidsafe.in";
+    QString appVersion = "241002";
 #endif
 public:
     BSONObjectID * bsonObjectGenerator;
@@ -44,12 +49,13 @@ public:
     QNetworkAccessManager * userInfoLoggerManager;
     QByteArray clientPublicKey;
     explicit ApiManager(QObject *parent = nullptr);
+    ApiManager(QString credentials,QString token,QObject *parent = nullptr);
     // QUrl * url;
     ShareKeyGenerator gen;
     EC_KEY* key;
     void GetKeysForChunk(QString testToken,QString courseId,QString videoId,QString courseItemId);
     QList<VideoData> parseVideoData(const QString &data);
-    void sendUserWatchTime(QString token, QString courseId,QString courseItemId,QString videoId,qint64 playbackTime);
+    void sendUserWatchTime(QString token, QString courseId,QString courseItemId,QString videoId,qint64 playbackTime,qint64 currentPosition);
     QSslConfiguration getSslConfig();
     QString getVideoMetadata(QString spk, QString iv, QString text);
     QJsonDocument jsonStringToDocument(const QString &jsonString);
@@ -57,6 +63,7 @@ public:
     QString sessionId = "";
     void getSessionId(QString token, QString courseId, QString courseItemId, QString videoId);
     QString handlePreconditionFailed(QJsonDocument errorData);
+    void sendErrorInfo(QJsonDocument errorData, QString url);
 signals:
     void onKeyFetchFinished(QList<VideoData> list,MizuConfig * config,int duration);
     void noNetwork(QString message);

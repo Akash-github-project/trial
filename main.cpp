@@ -39,41 +39,41 @@ bool isValidPath(const std::string& path)
     }
 }
 
-void customMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
-{
-    QString homeDir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+// void customMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+// {
+//     QString homeDir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
 
-    // Define your log file name
-    QString logFileName = homeDir + "/vidsafe.log";
-    static QFile logFile(logFileName);
-    if (!logFile.isOpen()) {
-        logFile.open(QIODevice::Append | QIODevice::Text);
-    }
+//     // Define your log file name
+//     QString logFileName = homeDir + "/vidsafe.log";
+//     static QFile logFile(logFileName);
+//     if (!logFile.isOpen()) {
+//         logFile.open(QIODevice::Append | QIODevice::Text);
+//     }
 
-    QTextStream out(&logFile);
-    out << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz ") << " ";
+//     QTextStream out(&logFile);
+//     out << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz ") << " ";
 
-    switch (type) {
-    case QtDebugMsg:
-        out << "DEBUG: ";
-        break;
-    case QtInfoMsg:
-        out << "INFO: ";
-        break;
-    case QtWarningMsg:
-        out << "WARNING: ";
-        break;
-    case QtCriticalMsg:
-        out << "CRITICAL: ";
-        break;
-    case QtFatalMsg:
-        out << "FATAL: ";
-        break;
-    }
+//     switch (type) {
+//     case QtDebugMsg:
+//         out << "DEBUG: ";
+//         break;
+//     case QtInfoMsg:
+//         out << "INFO: ";
+//         break;
+//     case QtWarningMsg:
+//         out << "WARNING: ";
+//         break;
+//     case QtCriticalMsg:
+//         out << "CRITICAL: ";
+//         break;
+//     case QtFatalMsg:
+//         out << "FATAL: ";
+//         break;
+//     }
 
 
-    out << msg << Qt::endl;
-}
+//     out << msg << Qt::endl;
+// }
 
 QString accessNamedPipes(){
     QFile pipe("\\\\.\\pipe\\VideoPlayerStream");

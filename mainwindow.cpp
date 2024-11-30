@@ -47,7 +47,7 @@ MainWindow::MainWindow(QString filePath,QString token,QString course_id,QString 
     ui->horizontalSlider_Duration->setTracking(false);
     playbackRateHandler = new PlaybackRateHandler(this,Player);
     //
-    manager = new ApiManager();
+    manager = new ApiManager(identifier,token,this);
     connect(manager, &ApiManager::onKeyFetchFinished, this, &MainWindow::onKeyFetchCompleted);
     connect(manager, &ApiManager::noNetwork, this, &MainWindow::onNoInternet);
 
@@ -93,7 +93,8 @@ MainWindow::MainWindow(QString filePath,QString token,QString course_id,QString 
 }
 
 void MainWindow::sendTimeToServer(qint64 playTimeInSeconds){
-    this->manager->sendUserWatchTime(token,course_id,video_item_id,video_id,playTimeInSeconds);
+    qint64 currentSeekbarPostion = getCurrentSeekabrPosition();
+    this->manager->sendUserWatchTime(token,course_id,video_item_id,video_id,playTimeInSeconds,currentSeekbarPostion);
 }
 
 void MainWindow::enumerateDisplays() {
@@ -130,10 +131,9 @@ void MainWindow::showWarningDialog(){
         if((allMonitors.length() > 1) || (monitorCount > 1) && warningDialog != nullptr){
             if(Player != nullptr && Player->isPlaying() && IS_FULL_SCREEN){
                 on_normal_button_pressed();
-                on_pushButton_Stop_clicked();
+                onStopClicked();
                 blockedForPiracy = true;
             }else {
-                // on_pushButton_Stop_clicked();
                 blockedForPiracy = true;
             }
             warningDialog->show();
@@ -443,6 +443,11 @@ void MainWindow::on_actionOpen_triggered(MizuConfig * config)
     RECORDING_FLASH_LAYER->startFlasing();
     RECORDING_RED_DOT->startFlasing();
     RECORDING_RED_DOT->updatePosition(20, view->height() - 40);
+    // if(config->resume_at_seconds <= 0){
+    //     return;
+    // }else {
+    //     jumpToPosition(10);
+    // }
 
 }
 
@@ -477,11 +482,30 @@ void MainWindow::on_pushButton_Play_Pause_clicked(){
     }
 }
 
+void MainWindow::onStopClicked(){
+    if(pausedForNoInternet){
+        return;
+    }
+    if(IS_FULL_SCREEN){
+        fsSeekbarController->moveSlider(0);
+        seekbarController->moveSlider(0);
+    } else {
+        seekbarController->moveSlider(0);
+    }
+    currentIndex = -1;
+    mediaStopped = true;
+    jumpToPosition(0);
+    if(Player != nullptr){
+        Player->pause();
+    }
+    handlePlayPauseButtonState(QMediaPlayer::PausedState);
+}
 
 void MainWindow::on_pushButton_Stop_clicked()
 {
-    qDebug()<<"-------------------------";
-    qDebug()<<"on_pushButton_Stop_clicked called";
+    if(IS_FULL_SCREEN){
+      on_normal_button_pressed();
+    }
     if(pausedForNoInternet){
         return;
     }
@@ -499,11 +523,6 @@ void MainWindow::on_pushButton_Stop_clicked()
     if(Player != nullptr){
         Player->pause();
     }
-    // if(IS_FULL_SCREEN){
-    //     fsSeekbarController->moveSlider(0);
-    // }else {
-    //     seekbarController->moveSlider(0);
-    // }
     handlePlayPauseButtonState(QMediaPlayer::PausedState);
 }
 
@@ -571,7 +590,7 @@ void MainWindow::on_pushButton_Seek_Backward_clicked() {
 
         userAction = true;
         if(oldTime <= fsSeekbar->minimum()){
-            on_pushButton_Stop_clicked();
+            onStopClicked();
             return;
         }
         if(playingTime <= 10){
@@ -591,7 +610,7 @@ void MainWindow::on_pushButton_Seek_Backward_clicked() {
         int playingTime = (Player->position() / 1000);
         userAction = true;
         if(oldTime <= ui->horizontalSlider_Duration->minimum()){
-            on_pushButton_Stop_clicked();
+            onStopClicked();
             return;
         }
         if(playingTime <= 10){
@@ -625,7 +644,7 @@ void MainWindow::on_pushButton_Seek_Forward_clicked()
     if(IS_FULL_SCREEN){
         int oldTime = fsSeekbarController->getValue() + 10;
         if(oldTime >= fsSeekbar->maximum()){
-            on_pushButton_Stop_clicked();
+            onStopClicked();
             return;
         }
         // int remaingTime = durationAverageInSeconds - (fsSeekbarController->getValue() % durationAverageInSeconds);
@@ -645,7 +664,7 @@ void MainWindow::on_pushButton_Seek_Forward_clicked()
         int oldTime = seekbarController->getValue() + 10;
         //qDebug()<<"old time"<<oldTime;
         if(oldTime >= ui->horizontalSlider_Duration->maximum()){
-            on_pushButton_Stop_clicked();
+            onStopClicked();
             return;
         }
         // int remaingTime = durationAverageInSeconds - (seekbarController->getValue() % durationAverageInSeconds);
@@ -684,7 +703,7 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
 
     if(fileCount <= currentIndex) {
         currentIndex = 0;
-        on_pushButton_Stop_clicked();
+        onStopClicked();
         playbackTimer->emitMetricsSignal();
     }
 
@@ -1337,7 +1356,7 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
  }
 
  void MainWindow::closeWatchTimeNoInternetDialogAndRetry(bool closeWindow){
-     qDebug()<<"close   window data --- " << closeWindow;
+     qDebug()<<"close window data --- " << closeWindow;
      if(closeWindow){
          guiInstance->exit();
          return;
@@ -1346,10 +1365,25 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
      if(noIntentDialogForTimer != nullptr){
          QList<qint64> pendingItems = playbackTimer->getPendingItemList();
          if(pendingItems.length() > 0){
+            qint64 currentSeekbarPostion = getCurrentSeekabrPosition();
             qint64 lastPendingItem = pendingItems.first();
-            manager->sendUserWatchTime(token,course_id,video_item_id,video_id,lastPendingItem);
+            manager->sendUserWatchTime(token,course_id,video_item_id,video_id,lastPendingItem,currentSeekbarPostion);
          }
      }
+ }
+
+ qint64 MainWindow::getCurrentSeekabrPosition(){
+    qint64 currentSeekbarPostion = 0;
+     try{
+        if(IS_FULL_SCREEN){
+            currentSeekbarPostion = fsSeekbar->value() * 1000;
+        }else {
+            currentSeekbarPostion = ui->horizontalSlider_Duration->value() * 1000;
+        }
+    }catch (const std::exception &e){
+         qDebug()<<e.what();
+     }
+    return currentSeekbarPostion;
  }
 
  void MainWindow::userPlaytimeDataSuccess(){

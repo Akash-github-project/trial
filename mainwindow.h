@@ -47,7 +47,7 @@
 #include <wbemidl.h>
 #include <setupapi.h>
 #include <screendetector.h>
-// #include <SecureMemory.h>
+#include <CustomAudioDevice.h>
 
 #define NAME_SIZE 128
 #pragma comment(lib, "setuplib.lib")
@@ -98,6 +98,7 @@ public:
     PlaybackRateHandler *playbackRateHandler;
     WarningDialog * warningDialog;
     UserPlaybackTimerTracker * playbackTimer;
+    CustomAudioDevice * customDevice = new CustomAudioDevice;
 
 public:
     const int timeLimit = 120;
@@ -115,10 +116,10 @@ public:
     QList<QPair<short, short>> getAllMonitorSizes();
     int getSumOfAllVideosTimeTillNow(int index);
     void caliberateVideo();
-
 private:
     // SecureMemory * mem = nullptr;
 public slots:
+    void onStopClicked();
     void userPlaytimeDataFailed(QString message);
     void userPlaytimeDataSuccess();
     void sendTimeToServer(qint64 playTimeInSeconds);
@@ -295,6 +296,20 @@ protected:
         // Call the base class if the message is not handled
         return QMainWindow::nativeEvent(eventType, message, result);
     }
+
+    void closeEvent(QCloseEvent * event) override{
+        if(!videoTimeArray.isEmpty()){
+            qint64 currentSeekbarPostion = getCurrentSeekabrPosition();
+            qint64 playTimeInSeconds = playbackTimer->getTotalPlayTime();
+            if(currentSeekbarPostion != 0 && playTimeInSeconds != 0){
+                manager->sendUserWatchTime(token,course_id,video_item_id,video_id,playTimeInSeconds,currentSeekbarPostion);
+            }
+        }
+        event->accept();
+    }
+
+    qint64 getCurrentSeekabrPosition();
+
 
 
     void paintEvent(QPaintEvent *) override {

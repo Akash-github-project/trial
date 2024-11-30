@@ -53,6 +53,7 @@ struct DFlashMizu {
 
 struct MizuConfig {
     int log_activity_interval;
+    int resume_at_seconds;
     SmMizu * smConfig;
     LgMizu * lgConfig;
     FlashMizu * flConfig;

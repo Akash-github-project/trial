@@ -10,7 +10,8 @@
 #include <QString>
 
 
-ApiManager::ApiManager(QObject *parent)
+// thas just mobile
+ApiManager::ApiManager(QString credentials,QString token,QObject *parent)
     : QObject{parent}
 {
     manager = new QNetworkAccessManager(this);
@@ -20,8 +21,12 @@ ApiManager::ApiManager(QObject *parent)
     connect(manager, &QNetworkAccessManager::finished, this, &ApiManager::onFinished);
     connect(userInfoLoggerManager,&QNetworkAccessManager::finished,this,&ApiManager::onSubmitUserInfo);
     bsonObjectGenerator = new BSONObjectID(this);
+    this->credentials = credentials;
+    this->token = token;
 }
 
+ApiManager::ApiManager(QObject *parent)
+    : QObject{parent}{  }
 
 
 QString ApiManager::getMotherboardSerialNumber() {
@@ -108,9 +113,9 @@ void ApiManager::GetKeysForChunk(QString testToken,QString courseId,QString vide
     QString token = bearer + tk;
     //qDebug()<<"debug:: latin " <<token.toLatin1();
     request.setRawHeader("Authorization",token.toLatin1());
-    request.setRawHeader("D",getMotherboardSerialNumber().toLatin1() );
+    request.setRawHeader("D",getMotherboardSerialNumber().toLatin1());
     request.setRawHeader("S","WC");
-    request.setRawHeader("V","241101");
+    request.setRawHeader("V",appVersion.toLatin1());
     request.setRawHeader("Accept","application/json; version=1.0");
     //
     // request.setSslConfiguration(getSslConfig());
@@ -126,13 +131,56 @@ void ApiManager::GetKeysForChunk(QString testToken,QString courseId,QString vide
     // Convert QJsonDocument to QByteArray
     QByteArray postData = jsonDoc.toJson();
 
-     manager->post(request, postData);
+    manager->post(request, postData);
+}
+
+void ApiManager::sendErrorInfo(QJsonDocument errorData,QString url){
+    try {
+        QString errorCode = errorData.object().value("code").toString();
+        QJsonArray errorMessage = errorData.object().value("error_description").toArray();
+
+
+        QNetworkRequest request(QUrl(url + "/api/record-error/"));
+        request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+
+        key =  gen.generateECKeyPair();
+        this->clientPublicKey = gen.extractPublicKeyPEM(key);
+
+        QString bearer = "Bearer ";
+        QString bearerToken = bearer + this->token;
+        //qDebug()<<"debug:: latin " <<token.toLatin1();
+        request.setRawHeader("Authorization",bearerToken.toLatin1());
+        request.setRawHeader("D",getMotherboardSerialNumber().toLatin1() );
+        request.setRawHeader("S","WC");
+        request.setRawHeader("V",appVersion.toLatin1());
+        request.setRawHeader("Accept","application/json; version=1.0");
+        //
+        // request.setSslConfiguration(getSslConfig());
+        QJsonObject json;
+        json["mobile"] = this->credentials;
+        //qDebug()<<"debug:: " << courseId;
+        json["description"] = errorMessage.at(0).toString();
+        json["error"] = errorCode;
+        json["data"] = url;
+        //qDebug()<<"debug:: " << videoId;
+        QJsonDocument jsonDoc(json);
+
+        // Convert QJsonDocument to QByteArray
+        QByteArray postData = jsonDoc.toJson();
+        manager->post(request, postData);
+    }catch (const std::exception &e){
+
+    }
 }
 
 void ApiManager::onSubmitUserInfo(QNetworkReply* reply){
     qDebug()<<"in submitUserInfo";
     qDebug()<<"in submitUserInfo data" << reply->url().toString();
     int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+
+    if(reply->url().toString().contains("api/record-error")){
+        return;
+    }
 
     if(reply->error() == QNetworkReply::NoError && reply->url().toString().contains("api/log-activity")){
         QByteArray response = reply->readAll();
@@ -156,6 +204,7 @@ void ApiManager::onSubmitUserInfo(QNetworkReply* reply){
             emit noNetworkForTimer("Your session has expired.\nPlease log in again.");
         }
         else if (statusCode == 500) {
+            sendErrorInfo(document,reply->url().toString());
             emit noNetworkForTimer("Server error" + QString::number(statusCode) + ".\nPlease contact support.");
         }else if(statusCode == 443 || statusCode == 0){
             // qWarning() << "Error:" << reply->errorString();
@@ -226,6 +275,13 @@ QJsonDocument ApiManager::jsonStringToDocument(const QString& jsonString) {
 void ApiManager::onFinished(QNetworkReply* reply) {
 
     int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+
+    if(reply->url().toString().contains("api/record-error")){
+        return;
+    }
+
+
+
     if (reply->error() == QNetworkReply::NoError && reply->url().toString().contains("api/generate-video-metadata")) {
         QByteArray responseData = reply->readAll();
         QJsonDocument document = QJsonDocument::fromJson(responseData,nullptr);
@@ -246,6 +302,8 @@ void ApiManager::onFinished(QNetworkReply* reply) {
         if(config->log_activity_interval == 0){
             config->log_activity_interval = 60;
         }
+        config->resume_at_seconds = jmd.object().value("resume_at_seconds").toInt();
+
         qDebug()<<"----- log"<< config->log_activity_interval<< "log interval";
 
         // Small watermark (sm_wm) config
@@ -305,6 +363,7 @@ void ApiManager::onFinished(QNetworkReply* reply) {
         }else if(statusCode == 401){
             emit noNetwork("Your session has expired.\nPlease log in again.");
         } else if(statusCode == 500){
+            sendErrorInfo(document,reply->url().toString());
             emit noNetwork("Server Error " + QString::number(statusCode) + ".\nPlease contact support");
         }else if(statusCode == 443 || statusCode == 0){
             emit noNetworkForTimer("No Internet connection.");
@@ -328,7 +387,7 @@ void ApiManager::onFinished(QNetworkReply* reply) {
 
 
 
-void ApiManager::sendUserWatchTime(QString token, QString courseId,QString courseItemId,QString videoId,qint64 playbackTime){
+void ApiManager::sendUserWatchTime(QString token, QString courseId,QString courseItemId,QString videoId,qint64 playbackTime,qint64 currentPosition){
     QNetworkRequest request(QUrl(url + "/api/log-activity/"));
     if(this->requestId.length() == 0) {
         this->requestId = QString::fromStdString(bsonObjectGenerator->generate());
@@ -343,7 +402,7 @@ void ApiManager::sendUserWatchTime(QString token, QString courseId,QString cours
     request.setRawHeader("Authorization",tokenString.toLatin1());
     request.setRawHeader("D",getMotherboardSerialNumber().toLatin1());
     request.setRawHeader("S","WC");
-    request.setRawHeader("V","241101");
+    request.setRawHeader("V",appVersion.toLatin1());
     request.setRawHeader("Accept","application/json; version=1.0");
     // request.setSslConfiguration(getSslConfig());
     QJsonObject jsonObject;
@@ -355,6 +414,7 @@ void ApiManager::sendUserWatchTime(QString token, QString courseId,QString cours
     jsonObject["video_id"] = videoId;
     jsonObject["video_watch_duration"] = playbackTime;
     jsonObject["session_id"] = sessionId;
+    jsonObject["current_seek_time"] = currentPosition;
     jsonObject["id"] = this->requestId;
 
     qDebug()<< "--------------------------------------------";
@@ -414,7 +474,7 @@ void ApiManager::getSessionId(QString token, QString courseId,QString courseItem
     request.setRawHeader("Authorization",tokenString.toLatin1());
     request.setRawHeader("D",getMotherboardSerialNumber().toLatin1());
     request.setRawHeader("S","WC");
-    request.setRawHeader("V","241001");
+    request.setRawHeader("V",appVersion.toLatin1());
     request.setRawHeader("Accept","application/json; version=1.0");
     // request.setSslConfiguration(getSslConfig());
     QJsonObject jsonObject;
