@@ -8,7 +8,7 @@
 //#define IS_FULL_SCREEN false
 
 
-MainWindow::MainWindow(QString filePath,QString token,QString course_id,QString video_id,QString video_item_id,QString identifier,QWidget *parent)
+MainWindow::MainWindow(QString filePath,QString token,QString course_id,QString video_id,QString video_item_id,QString identifier,QString deviceId,QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
     ,warningDialog(new WarningDialog(this))
@@ -32,6 +32,7 @@ MainWindow::MainWindow(QString filePath,QString token,QString course_id,QString 
     this->identifier = identifier;
     this->video_item_id = video_item_id;
     Player = new QMediaPlayer();
+
     QAudioOutput *audioOutput = new QAudioOutput();
     seekbarNewController = new SeekbarProgressController(this);
     ui->pushButton_Play_Pause->setStyleSheet( playButtonStyle );
@@ -47,7 +48,7 @@ MainWindow::MainWindow(QString filePath,QString token,QString course_id,QString 
     ui->horizontalSlider_Duration->setTracking(false);
     playbackRateHandler = new PlaybackRateHandler(this,Player);
     //
-    manager = new ApiManager(identifier,token,this);
+    manager = new ApiManager(identifier,token,deviceId,this);
     connect(manager, &ApiManager::onKeyFetchFinished, this, &MainWindow::onKeyFetchCompleted);
     connect(manager, &ApiManager::noNetwork, this, &MainWindow::onNoInternet);
 
@@ -90,6 +91,7 @@ MainWindow::MainWindow(QString filePath,QString token,QString course_id,QString 
     ui->pushButton_1p5x->hide();
     ui->pushButton_2x->hide();
     ui->label_3->hide();
+
 }
 
 void MainWindow::sendTimeToServer(qint64 playTimeInSeconds){
@@ -926,13 +928,13 @@ void MainWindow::loadVideo(QMediaPlayer::MediaStatus status){
 
  void MainWindow::on_pushButton_1p5x_clicked()
  {
-     // playbackRateHandler->chnagePlaybackRate(1.5f);
+    //playbackRateHandler->chnagePlaybackRate(1.5f);
  }
 
 
  void MainWindow::on_pushButton_2x_clicked()
  {
-     // playbackRateHandler->chnagePlaybackRate(2.0f);
+    //playbackRateHandler->chnagePlaybackRate(2.0f);
  }
 
  void MainWindow::fullScreenChnaged(const QRectF &rect){

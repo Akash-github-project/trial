@@ -127,6 +127,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         bsonobjectid.h bsonobjectid.cpp
         customgraphicstextitem.h customgraphicstextitem.cpp
         customaudiodevice.h customaudiodevice.cpp
+
         # securememory.h securememory.cpp
 
         #fullscreenviews.h fullscreenviews.cpp

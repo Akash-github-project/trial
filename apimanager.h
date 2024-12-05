@@ -1,6 +1,6 @@
 #ifndef APIMANAGER_H
 #define APIMANAGER_H
-#define PROD
+//#define PROD
 
 #include <QObject>
 #include <QCoreApplication>
@@ -36,9 +36,10 @@ private:
     QString requestId = "";
     QString	credentials = "";
     QString token = "";
+    QString deviceId = "";
 #ifdef PROD
     QString url = "https://secure.vidsafe.in";
-    QString appVersion = "241101";
+    QString appVersion = "241201";
 #else
    QString url = "https://test-server.vidsafe.in";
     QString appVersion = "241002";
@@ -49,7 +50,7 @@ public:
     QNetworkAccessManager * userInfoLoggerManager;
     QByteArray clientPublicKey;
     explicit ApiManager(QObject *parent = nullptr);
-    ApiManager(QString credentials,QString token,QObject *parent = nullptr);
+    ApiManager(QString credentials,QString token,QString deviceId,QObject *parent = nullptr);
     // QUrl * url;
     ShareKeyGenerator gen;
     EC_KEY* key;

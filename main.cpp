@@ -39,41 +39,39 @@ bool isValidPath(const std::string& path)
     }
 }
 
-// void customMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
-// {
-//     QString homeDir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
+void customMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    QString homeDir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
 
-//     // Define your log file name
-//     QString logFileName = homeDir + "/vidsafe.log";
-//     static QFile logFile(logFileName);
-//     if (!logFile.isOpen()) {
-//         logFile.open(QIODevice::Append | QIODevice::Text);
-//     }
+    // Define your log file name
+    QString logFileName = homeDir + "/vidsafe.log";
+    static QFile logFile(logFileName);
+    if (!logFile.isOpen()) {
+        logFile.open(QIODevice::Append | QIODevice::Text);
+    }
 
-//     QTextStream out(&logFile);
-//     out << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz ") << " ";
+    QTextStream out(&logFile);
+    out << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz ") << " ";
 
-//     switch (type) {
-//     case QtDebugMsg:
-//         out << "DEBUG: ";
-//         break;
-//     case QtInfoMsg:
-//         out << "INFO: ";
-//         break;
-//     case QtWarningMsg:
-//         out << "WARNING: ";
-//         break;
-//     case QtCriticalMsg:
-//         out << "CRITICAL: ";
-//         break;
-//     case QtFatalMsg:
-//         out << "FATAL: ";
-//         break;
-//     }
-
-
-//     out << msg << Qt::endl;
-// }
+    switch (type) {
+    case QtDebugMsg:
+        out << "DEBUG: ";
+        break;
+    case QtInfoMsg:
+        out << "INFO: ";
+        break;
+    case QtWarningMsg:
+        out << "WARNING: ";
+        break;
+    case QtCriticalMsg:
+        out << "CRITICAL: ";
+        break;
+    case QtFatalMsg:
+        out << "FATAL: ";
+        break;
+    }
+    out << msg << Qt::endl;
+}
 
 QString accessNamedPipes(){
     QFile pipe("\\\\.\\pipe\\VideoPlayerStream");
@@ -92,14 +90,15 @@ QString accessNamedPipes(){
 
 int main(int argc, char *argv[])
 {
-    // qInstallMessageHandler(customMessageHandler);
+    qInstallMessageHandler(customMessageHandler);
     QApplication a(argc, argv);
 
+    qDebug()<<"starting the application";
   #ifndef LOCAL
     QString returnValue = accessNamedPipes();
     QStringList listOfArgs = returnValue.split("#");
 
-    if(listOfArgs.length() != 6) {
+    if(listOfArgs.length() != 7) {
         qDebug()<<"immproper number of arguments";
         return 1;
     }
@@ -140,6 +139,7 @@ int main(int argc, char *argv[])
     const QString course_id = listOfArgs[3];
     const QString identifier = listOfArgs[4];
     const QString video_item_id = listOfArgs[5];
+    const QString deviceId = listOfArgs[6];
     QString filePath = QString::fromStdString(folderPath);
   #endif
 
@@ -151,7 +151,9 @@ int main(int argc, char *argv[])
      QString filePath = "C:/Users/BharatCaller/AppData/Roaming/VidSafe/com.companyname.vidsafeproject/Data/VidSafeExtracted/66868469da8f5976e34f87bc.zip";
      const QString identifier = "8709031440";
   #endif
-    MainWindow w(filePath,token,course_id,video_id,video_item_id,identifier,nullptr);
+
+    //std::setenv("QT_MULTIMEDIA_PREFERRED_PLUGINS", "windowsmediafoundation", 1);
+    MainWindow w(filePath,token,course_id,video_id,video_item_id,identifier,deviceId,nullptr);
     w.show();
     return a.exec();
 }

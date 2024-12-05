@@ -11,7 +11,7 @@
 
 
 // thas just mobile
-ApiManager::ApiManager(QString credentials,QString token,QObject *parent)
+ApiManager::ApiManager(QString credentials,QString token,QString deviceId,QObject *parent)
     : QObject{parent}
 {
     manager = new QNetworkAccessManager(this);
@@ -23,6 +23,7 @@ ApiManager::ApiManager(QString credentials,QString token,QObject *parent)
     bsonObjectGenerator = new BSONObjectID(this);
     this->credentials = credentials;
     this->token = token;
+    this->deviceId = deviceId;
 }
 
 ApiManager::ApiManager(QObject *parent)
@@ -30,7 +31,7 @@ ApiManager::ApiManager(QObject *parent)
 
 
 QString ApiManager::getMotherboardSerialNumber() {
-    QString serialNumber;
+/*    QString serialNumber;
 
 #ifdef Q_OS_WIN
         // Use wmic on Windows
@@ -61,7 +62,8 @@ QString ApiManager::getMotherboardSerialNumber() {
         //qDebug() << "Process error or command failed with exit code:" << process.exitCode() << ", Error:" << process.errorString();
     }
     //qDebug() << "Serial number:" << serialNumber;
-    return serialNumber;
+    return serialNumber*/;
+    return this->deviceId;
 }
 
 
@@ -148,21 +150,19 @@ void ApiManager::sendErrorInfo(QJsonDocument errorData,QString url){
 
         QString bearer = "Bearer ";
         QString bearerToken = bearer + this->token;
-        //qDebug()<<"debug:: latin " <<token.toLatin1();
+        qDebug()<<"debug:: latin " <<token.toLatin1();
         request.setRawHeader("Authorization",bearerToken.toLatin1());
         request.setRawHeader("D",getMotherboardSerialNumber().toLatin1() );
         request.setRawHeader("S","WC");
         request.setRawHeader("V",appVersion.toLatin1());
         request.setRawHeader("Accept","application/json; version=1.0");
         //
-        // request.setSslConfiguration(getSslConfig());
+         request.setSslConfiguration(getSslConfig());
         QJsonObject json;
         json["mobile"] = this->credentials;
-        //qDebug()<<"debug:: " << courseId;
         json["description"] = errorMessage.at(0).toString();
         json["error"] = errorCode;
         json["data"] = url;
-        //qDebug()<<"debug:: " << videoId;
         QJsonDocument jsonDoc(json);
 
         // Convert QJsonDocument to QByteArray
@@ -207,13 +207,13 @@ void ApiManager::onSubmitUserInfo(QNetworkReply* reply){
             sendErrorInfo(document,reply->url().toString());
             emit noNetworkForTimer("Server error" + QString::number(statusCode) + ".\nPlease contact support.");
         }else if(statusCode == 443 || statusCode == 0){
-            // qWarning() << "Error:" << reply->errorString();
-            // qDebug() << "No network error from API manager 'onSubmitUserInfo'";
+             qWarning() << "Error:" << reply->errorString();
+             qDebug() << "No network error from API manager 'onSubmitUserInfo'";
             emit noNetworkForTimer("No Internet connection.");
         }
         else {
             qWarning() << "Error:" << reply->errorString();
-            // qDebug() << "No network error from API manager 'onSubmitUserInfo'";
+             qDebug() << "No network error from API manager 'onSubmitUserInfo'";
             emit noNetworkForTimer("Server error" + QString::number(statusCode) + ".\nPlease contact support.");
         }
     }
@@ -231,12 +231,12 @@ QString ApiManager::getVideoMetadata(QString spk,QString iv,QString text){
         //EncryptionHandler  handler;
         TextDecryptor decryptor;
         QByteArray pmkey = QByteArray::fromHex(spk.toUtf8());
-        //qDebug()<<"pem key" << pmkey.toStdString();
+        qDebug()<<"pem key" << pmkey.toStdString();
 
         EC_KEY * serverKey = gen.loadServerPublicKey(pmkey);
         QByteArray unCompressed = gen.publicKeyToUncompressedHex(serverKey);
 
-        //qDebug()<<"uncompressed key" << unCompressed;
+        qDebug()<<"uncompressed key" << unCompressed;
 
         const EC_GROUP* group = EC_KEY_get0_group(key);
         EC_POINT* server_point = gen.hexToECPoint(unCompressed, const_cast<EC_GROUP*>(group));

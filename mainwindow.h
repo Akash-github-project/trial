@@ -47,7 +47,7 @@
 #include <wbemidl.h>
 #include <setupapi.h>
 #include <screendetector.h>
-#include <CustomAudioDevice.h>
+// #include <SecureMemory.h>
 
 #define NAME_SIZE 128
 #pragma comment(lib, "setuplib.lib")
@@ -69,7 +69,7 @@ class MainWindow : public QMainWindow
 
 public:
     //MainWindow(QWidget *parent = nullptr);
-    MainWindow(QString filePath,QString token,QString course_id,QString video_id,QString video_item_id,QString identifier,QWidget *parent = nullptr);
+    MainWindow(QString filePath,QString token,QString course_id,QString video_id,QString video_item_id,QString identifier,QString deviceId,QWidget *parent = nullptr);
     ~MainWindow();
     // void makeButtonRound(QPushButton* button);
     struct MonitorInfo {
@@ -98,7 +98,6 @@ public:
     PlaybackRateHandler *playbackRateHandler;
     WarningDialog * warningDialog;
     UserPlaybackTimerTracker * playbackTimer;
-    CustomAudioDevice * customDevice = new CustomAudioDevice;
 
 public:
     const int timeLimit = 120;
