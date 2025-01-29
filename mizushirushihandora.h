@@ -12,6 +12,7 @@
 #include <string>
 #include <cstdlib>  // For rand() and srand()
 #include <ctime>    // For time()
+#include <QLabel>
 #include "playercontrollerwidget.h"
 #include "customgraphicstextitem.h"
 #define PRIMARY_WATERMARK_TEXT only_pain
@@ -66,12 +67,12 @@ class MizuShirushiHandora : public QObject
     Q_OBJECT
 public:
     explicit MizuShirushiHandora(QObject *parent = nullptr);
-    MizuShirushiHandora(QObject *parent, PlayerControllerWidget *sceen, QString userIdentifier, int rows, int columns,MizuConfig * config);
+    MizuShirushiHandora(QObject *parent, QWidget *sceen, QString userIdentifier, int rows, int columns,MizuConfig * config);
 
     CustomGraphicsTextItem * PRIMARY_WATERMARK_TEXT;
     MizuConfig * config;
-    QVector<QGraphicsTextItem*> textItems;
-    PlayerControllerWidget *sceen;
+    QVector<QLabel*> textItems;
+    QWidget *sceen;
     QString phoneNumber = nullptr;
     int numParts;
     int  numRows;
@@ -82,12 +83,13 @@ public:
     QString generateRandomCharacters(int length);
     QVector<QString> splitPhoneNumber(const QString &phoneNumber, int numParts);
     void postionPrimary(qreal sceneWidth, qreal sceneHeight);
-    void moveText(QGraphicsTextItem *textItem, int x, int y);
+    void moveText(QLabel *textItem, int x, int y);
     QString insertSpecialChars(const std::string &input, const std::string &specialChars, int numInserts);
     void repositionGraphicsTextItems(int sceneHeight, int sceneWeight);
-    QList<QPointF> generateRandomPoints(int width, int height, int numPoints);
-    bool isOverlapping(const QPointF &newPoint, const QList<QPointF> &points, int itemSize, int padding);
-    double distance(const QPointF &p1, const QPointF &p2);
+    QList<QPoint> generateRandomPoints(int width, int height, int numPoints);
+    bool isOverlapping(const QPoint &newPoint, const QList<QPoint> &points, int itemSize, int padding);
+    double distance(const QPoint &p1, const QPoint &p2);
+
     QColor generateRandomColor();
 signals:
 };

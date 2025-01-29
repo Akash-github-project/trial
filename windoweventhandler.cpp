@@ -6,7 +6,7 @@ WindowEventHandler::WindowEventHandler(QObject *parent)
 
 WindowEventHandler::WindowEventHandler(QObject *parent ,QMainWindow *window){
     this->window = window;
-};
+}
 
 void WindowEventHandler::setWindowFullScreen(){
      window->setWindowState(Qt::WindowFullScreen);

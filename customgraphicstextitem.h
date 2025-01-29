@@ -8,22 +8,29 @@
 #include <QPen>
 struct LgMizu;
 
-class CustomGraphicsTextItem : public QGraphicsTextItem {
+
+class CustomGraphicsTextItem : public QLabel {
+    Q_OBJECT
+
 public:
-    CustomGraphicsTextItem(const QString &text,LgMizu* config ,QGraphicsItem *parent = nullptr);
+    explicit CustomGraphicsTextItem(const QString &text, LgMizu *config, QWidget *parent = nullptr);
+
+    // Setters for properties
     void setOutlineColor(const QColor &color);
     void setTextColor(const QColor &color);
     void setOutlineThickness(int thickness);
+    void setRotationAngle(qreal angle);
 
 protected:
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override;
+    // Overridden paint event
+    void paintEvent(QPaintEvent *event) override;
 
 private:
-    QColor outlineColor;
-    QColor textColor;
-    int outlineThickness;
-    LgMizu * config;
+    QColor outlineColor;       // Color of the outline
+    QColor textColor;          // Color of the text
+    int outlineThickness;      // Thickness of the outline
+    qreal m_rotationAngle;     // Rotation angle in degrees
+    LgMizu *config;            // Configuration pointer
 };
-
 
 #endif // CUSTOMGRAPHICSTEXTITEM_H

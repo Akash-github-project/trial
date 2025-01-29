@@ -1,9 +1,10 @@
 #include "reddotrecording.h"
 
+
 //RedDotRecording::RedDotRecording() {}
 
-RedDotRecording::RedDotRecording(QGraphicsScene *scene,const std::string phoneNumber,DFlashMizu * config, QWidget *parent)
-    : QGraphicsView(scene, parent) {
+RedDotRecording::RedDotRecording(QWidget *scene,const std::string phoneNumber,DFlashMizu * config, QWidget *parent)
+    : QWidget(parent) {
 
     emitter = new PatternEmitter(phoneNumber, parent);
 
@@ -12,19 +13,28 @@ RedDotRecording::RedDotRecording(QGraphicsScene *scene,const std::string phoneNu
     connect(emitter,&PatternEmitter::emitDot,this,&RedDotRecording::dotLayerColorChange);
     connect(emitter,&PatternEmitter::emitSpace,this,&RedDotRecording::spaceLayerColorChange);
 
-    // BLINK_TIMER = new QTimer(parent);
-    // BLINK_TIMER->setInterval(1000);
-    redDot = new QGraphicsEllipseItem(0,0, 20, 20);
-    redDot->setBrush(QBrush(QColor(config->color)));
+    // redDot = new QGraphicsEllipseItem(0,0, 20, 20);
+    // redDot->setBrush(QBrush(QColor(config->color)));
 
-    QGraphicsTextItem *recText = new QGraphicsTextItem("REC");
-    recText->setPos((redDot->boundingRect().width() - recText->boundingRect().width()) / 2, redDot->boundingRect().height());
-    recText->setDefaultTextColor(QColor(config->color));
+    // QGraphicsTextItem *recText = new QGraphicsTextItem("REC");
+    // recText->setPos((redDot->boundingRect().width() - recText->boundingRect().width()) / 2, redDot->boundingRect().height());
+    // recText->setDefaultTextColor(QColor(config->color));
 
-    recGroup = new QGraphicsItemGroup();
-    recGroup->addToGroup(redDot);
-    recGroup->addToGroup(recText);
-    scene->addItem(recGroup);
+    // recGroup = new QGraphicsItemGroup();
+    // recGroup->addToGroup(redDot);
+    // recGroup->addToGroup(recText);
+    // scene->addItem(recGroup);
+
+
+    // Instantiate the RecWidget
+    recWidget = new RecWidget(scene, QColor(config->color));
+
+    // Add it to the parent container (e.g., main window or another widget)
+    //recWidget->setParent(parentWidget);
+    recWidget->move(100, 100); // Set position if needed
+    recWidget->show();
+
+
     this->config = config;
     startFlasing();
 }
@@ -32,25 +42,30 @@ RedDotRecording::RedDotRecording(QGraphicsScene *scene,const std::string phoneNu
 
 void RedDotRecording::updatePosition(qint64 x, qint64 y) {
     // Position the group at the bottom of the view
-    recGroup->setPos(x, y);
+    if(recWidget != nullptr){
+        recWidget->move(x,y);
+    }
 }
 
 void RedDotRecording::dotLayerColorChange(){
     QColor dashColor = QColor(config->color);
     dashColor.setAlpha(config->transparency[0]);
-    redDot->setBrush(QBrush(dashColor));
+    //redDot->setBrush(QBrush(dashColor));
+    recWidget->setColor(dashColor);
 }
 
 void RedDotRecording::dashLayerColorChange(){
     QColor dashColor = QColor(config->color);
     dashColor.setAlpha(config->transparency[1]);
-    redDot->setBrush(QBrush(dashColor));
+    //redDot->setBrush(QBrush(dashColor));
+    recWidget->setColor(dashColor);
 }
 
 void RedDotRecording::spaceLayerColorChange(){
     QColor dashColor = QColor(config->color);
     dashColor.setAlpha(config->transparency[2]);
-    redDot->setBrush(QBrush(dashColor));
+   // redDot->setBrush(QBrush(dashColor));
+    recWidget->setColor(dashColor);
 }
 
 void RedDotRecording::startFlasing(){

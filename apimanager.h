@@ -1,6 +1,6 @@
 #ifndef APIMANAGER_H
 #define APIMANAGER_H
-//#define PROD
+#define PROD
 
 #include <QObject>
 #include <QCoreApplication>
@@ -39,7 +39,7 @@ private:
     QString deviceId = "";
 #ifdef PROD
     QString url = "https://secure.vidsafe.in";
-    QString appVersion = "241201";
+    QString appVersion = "250103";
 #else
    QString url = "https://test-server.vidsafe.in";
     QString appVersion = "241002";
@@ -57,7 +57,6 @@ public:
     void GetKeysForChunk(QString testToken,QString courseId,QString videoId,QString courseItemId);
     QList<VideoData> parseVideoData(const QString &data);
     void sendUserWatchTime(QString token, QString courseId,QString courseItemId,QString videoId,qint64 playbackTime,qint64 currentPosition);
-    QSslConfiguration getSslConfig();
     QString getVideoMetadata(QString spk, QString iv, QString text);
     QJsonDocument jsonStringToDocument(const QString &jsonString);
     QString getMotherboardSerialNumber();
@@ -65,12 +64,13 @@ public:
     void getSessionId(QString token, QString courseId, QString courseItemId, QString videoId);
     QString handlePreconditionFailed(QJsonDocument errorData);
     void sendErrorInfo(QJsonDocument errorData, QString url);
+private:
+    QSslConfiguration getSslConfig(const QByteArray &pfxData, const QString &password);
 signals:
     void onKeyFetchFinished(QList<VideoData> list,MizuConfig * config,int duration);
     void noNetwork(QString message);
     void noNetworkForTimer(QString message);
     void onUserTimeSentSuccess();
-    //void onSessionReceived(QString sessionId);
 public slots:
     void onFinished(QNetworkReply *reply);
     void onSubmitUserInfo(QNetworkReply *reply);

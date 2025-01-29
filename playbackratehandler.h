@@ -3,16 +3,17 @@
 
 #include <QMediaPlayer>
 #include <QObject>
+#include <vlcplayer.h>
 
 class PlaybackRateHandler : public QObject
 {
     Q_OBJECT
 private:
     float playbackRate = 1.0f;
-    QMediaPlayer *mediaPlayerInstance;
+    VLCPlayer *mediaPlayerInstance;
 public:
     explicit PlaybackRateHandler(QObject *parent = nullptr);
-    PlaybackRateHandler(QObject *parent = nullptr,QMediaPlayer *player = nullptr);
+    PlaybackRateHandler(QObject *parent = nullptr,VLCPlayer  *player = nullptr);
     void chnagePlaybackRate(float playbackRate);
 
 signals:

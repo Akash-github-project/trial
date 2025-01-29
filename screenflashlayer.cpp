@@ -1,13 +1,13 @@
 #include "screenflashlayer.h"
 
 
-ScreenFlashLayer::ScreenFlashLayer(QGraphicsScene *scene,const std::string &phoneNumber,FlashMizu * config,QWidget *parent)
-    : QGraphicsView(scene, parent) {
+ScreenFlashLayer::ScreenFlashLayer(QWidget *scene,const std::string &phoneNumber,FlashMizu * config,QWidget *parent)
+    : QWidget( parent) {
     this->config = config;
     emitter = new PatternEmitter(phoneNumber,parent);
-    recLayer = new QGraphicsRectItem(0,0, scene->itemsBoundingRect().width(), scene->itemsBoundingRect().height());
-    scene->addItem(recLayer);
-    recLayer->setPen(Qt::NoPen);
+    recLayer = new QWidget(scene);
+    //scene->addItem(recLayer);
+    //recLayer->setPen(Qt::NoPen);
     connect(emitter,&PatternEmitter::emitDash,this,&ScreenFlashLayer::dashLayerColorChange);
     connect(emitter,&PatternEmitter::emitDot,this,&ScreenFlashLayer::dotLayerColorChange);
     connect(emitter,&PatternEmitter::emitSpace,this,&ScreenFlashLayer::spaceLayerColorChange);
@@ -19,7 +19,8 @@ void ScreenFlashLayer::dotLayerColorChange(){
     // dashColor.setGreen(225);
     // dashColor.setBlue(225);
     dashColor.setAlpha(config->transparency[0]);
-    recLayer->setBrush(QBrush(dashColor));
+    recLayer->setStyleSheet(QString("background-color: %1;").arg(dashColor.name(QColor::HexArgb)));
+    //recLayer->setBrush(QBrush(dashColor));
 }
 
 void ScreenFlashLayer::dashLayerColorChange(){
@@ -28,7 +29,7 @@ void ScreenFlashLayer::dashLayerColorChange(){
     // dashColor.setGreen(217);
     // dashColor.setBlue(217);
     dashColor.setAlpha(config->transparency[1]);
-    recLayer->setBrush(QBrush(dashColor));
+    recLayer->setStyleSheet(QString("background-color: %1;").arg(dashColor.name(QColor::HexArgb)));
 }
 
 void ScreenFlashLayer::spaceLayerColorChange(){
@@ -37,7 +38,7 @@ void ScreenFlashLayer::spaceLayerColorChange(){
     // dashColor.setGreen(255);
     // dashColor.setBlue(255);
     dashColor.setAlpha(config->transparency[2]);
-    recLayer->setBrush(QBrush(dashColor));
+    recLayer->setStyleSheet(QString("background-color: %1;").arg(dashColor.name(QColor::HexArgb)));
 }
 
 void ScreenFlashLayer::startFlasing(){
@@ -45,6 +46,7 @@ void ScreenFlashLayer::startFlasing(){
 }
 
 void ScreenFlashLayer::updateSize(qint64 x, qint64 y,qint64 width,qint64 height) {
-    recLayer->setRect(x,y,width,height);
-    recLayer->update(x,y,width,height);
+    recLayer->setGeometry(x,y,width,height);
+    //recLayer->setRect(x,y,width,height);
+    //recLayer->update(x,y,width,height);
 }

@@ -73,8 +73,15 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/include/)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
+# Paths for libVLC
+set(VLC_ROOT "${CMAKE_SOURCE_DIR}/x64")
+include_directories(${VLC_ROOT}/include)
+link_directories(${VLC_ROOT})
 
 #QT6_USE_MODULES (${EXECUTABLE_NAME} Multimedia MultimediaWidgets)
+
+
+#set(app_icon_resource_windows "icon.rc")
 
 set(PROJECT_SOURCES
         main.cpp
@@ -127,8 +134,14 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         bsonobjectid.h bsonobjectid.cpp
         customgraphicstextitem.h customgraphicstextitem.cpp
         customaudiodevice.h customaudiodevice.cpp
-
+        vlcplayer.h vlcplayer.cpp
+        videowidget.h videowidget.cpp
+        fullscreencontrolswidget.h fullscreencontrolswidget.cpp
+        reddotwidget.h reddotwidget.cpp
+        recwidget.h recwidget.cpp
+        customgesturewidget.h customgesturewidget.cpp
         # securememory.h securememory.cpp
+
 
         #fullscreenviews.h fullscreenviews.cpp
 
@@ -151,6 +164,8 @@ else()
     endif()
 endif()
 
+
+target_link_libraries(VidSafePlayer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/icon.o)
 target_link_libraries(VidSafePlayer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(VidSafePlayer PRIVATE Qt${QT_VERSION_MAJOR}::Multimedia)
 target_link_libraries(VidSafePlayer PRIVATE Qt${QT_VERSION_MAJOR}::MultimediaWidgets)
@@ -162,6 +177,8 @@ target_link_libraries(VidSafePlayer PRIVATE openssl)
 target_link_libraries(VidSafePlayer PRIVATE crypto)
 target_link_libraries(VidSafePlayer PRIVATE libz)
 target_link_libraries(VidSafePlayer PRIVATE libSoundTouch)
+
+target_link_libraries(VidSafePlayer PRIVATE libvlc.lib libvlccore.lib)
 #add_definitions(/EHsc)  # Optional for exception handling
 
 if(WIN32)
@@ -188,7 +205,7 @@ set_target_properties(VidSafePlayer PROPERTIES
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
-    OUTPUT_NAME "VajiramVidsafePlayer"
+    OUTPUT_NAME "VidsafePlayer"
 )
 
 include(GNUInstallDirs)

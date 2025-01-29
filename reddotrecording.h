@@ -9,21 +9,23 @@
 #include <QTimer>
 #include <patternemitter.h>
 #include <mizushirushihandora.h>
+#include "recwidget.h"
 #define BLINK_TIMER djLighting
 
-class RedDotRecording : public QGraphicsView
+class RedDotRecording : public QWidget
 {
     Q_OBJECT
 public:
-    RedDotRecording(QGraphicsScene *scene,const std::string phoneNumber,DFlashMizu * config,QWidget *parent = nullptr);
+    RedDotRecording(QWidget *scene,const std::string phoneNumber,DFlashMizu * config,QWidget *parent = nullptr);
     void updatePosition(qint64 x, qint64 y);
     void startFlasing();
 private:
     DFlashMizu * config;
     QTimer *BLINK_TIMER;
-    QGraphicsItemGroup *recGroup;
-    QGraphicsEllipseItem *redDot;
+    // QGraphicsItemGroup *recGroup;
+    // QGraphicsEllipseItem *redDot;
     PatternEmitter *emitter;
+    RecWidget *recWidget;
     bool isDeepRed = false;
     void dotLayerColorChange();
     void spaceLayerColorChange();

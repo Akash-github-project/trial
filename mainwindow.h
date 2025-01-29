@@ -23,7 +23,7 @@
 #include <QFile>
 #include <QBuffer>
 #include <QDir>
-#include <QGraphicsVideoItem>
+//#include <QGraphicsVideoItem>
 #include <PlaybackRateHandler.h>
 #include <SeekbarProgressController.h>
 #include <customseekbar.h>
@@ -33,13 +33,16 @@
 #include <warningdialog.h>
 #include "CustomGraphicsView.h"
 #include <FullScreenControlHoverHandler.h>
-#include <QGraphicsVideoItem>
+#include <fullscreencontrolswidget.h>
+//#include <QGraphicsVideoItem>
 #include <QMetaObject>
 #include <QUiLoader>
 #include <QScreen>
 #include <apimanager.h>
 #include <QMessageBox>
+#include <QStackedLayout>
 #include <userplaybacktimertracker.h>
+#include "customgesturewidget.h"
 // platform specific
 #include <windows.h>
 #include <memory>
@@ -47,6 +50,7 @@
 #include <wbemidl.h>
 #include <setupapi.h>
 #include <screendetector.h>
+#include <vlcplayer.h>
 // #include <SecureMemory.h>
 
 #define NAME_SIZE 128
@@ -54,8 +58,8 @@
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "wbemuuid.lib")
 
-#define WATERMARK_TEXT random_video
-#define WATERMARK_TEXT1 random_video_d
+//#define WATERMARK_TEXT random_video
+//#define WATERMARK_TEXT1 random_video_d
 #define RECORDING_RED_DOT random_seekbar
 #define RECORDING_FLASH_LAYER random_seekbar_slider
 
@@ -89,15 +93,17 @@ public:
 
 public:
     const GUID GUID_CLASS_MONITOR = {0x4d36e96e, 0xe325, 0x11ce, 0xbf, 0xc1, 0x08, 0x00, 0x2b, 0xe1, 0x03, 0x18};
-    PlayerControllerWidget *scene;
+    //PlayerControllerWidget *scene;
     MizuShirushiHandora* watermarkHandler;
-    QMediaPlayer *Player;
+    //QMediaPlayer *Player;
+    VLCPlayer *Player;
     // Create a QGraphicsScene
-    CustomGraphicsView *view = nullptr;
-    QGraphicsVideoItem *videoItem = nullptr;
+    //CustomGraphicsView *view = nullptr;
+    //QGraphicsVideoItem *videoItem = nullptr;
     PlaybackRateHandler *playbackRateHandler;
     WarningDialog * warningDialog;
     UserPlaybackTimerTracker * playbackTimer;
+    VideoWidget* widgetVideo;
 
 public:
     const int timeLimit = 120;
@@ -106,6 +112,8 @@ public:
     int oldHeight = 0;
     int oldWidth = 0;
     int durationAverageInSeconds = 60;
+    qint64 lastForward = 0;
+    qint64 lastBackward = 0;
     int detectMonitors();
     void enumerateDisplays();
     bool userAction = false;
@@ -124,7 +132,7 @@ public slots:
     void sendTimeToServer(qint64 playTimeInSeconds);
     void fullScreenChnaged(const QRectF &rect);
     void on_normal_button_pressed();
-    void handlePlayPauseButtonState(QMediaPlayer::PlaybackState playbackState);
+    void handlePlayPauseButtonState(PlayPauseState playbackState);
     void handleVolumeChange(int volume);
     void handleWindowModesTransitions(bool isFullScreen);
     void durationChanged(qint64 duration);
@@ -136,7 +144,7 @@ public slots:
     void on_horizontalSlider_Volume_valueChanged(int value);
     void on_pushButton_Seek_Backward_clicked();
     void on_pushButton_Seek_Forward_clicked();
-    void loadVideo(QMediaPlayer::MediaStatus status);
+    void loadVideo(PlaybackState status);
     void on_horizontalSlider_Duration_sliderMoved();
     void onSliderStop();
     void on_pushButton_1x_clicked();
@@ -167,8 +175,8 @@ private:
     QList<VideoData> videoItemList;
     QGuiApplication* guiInstance;
     QCoreApplication* guiApp;
-    QVideoWidget *Video = nullptr;
-    QGraphicsWidget *GraphicsWidget = nullptr;
+    //QVideoWidget *Video = nullptr;
+    //QGraphicsWidget *GraphicsWidget = nullptr;
     //FullScreenViews  *fullScreenViews = nullptr;
     SeekbarProgressController *seekbarNewController;
     // Create a QGraphicsVideoItem
@@ -184,12 +192,20 @@ private:
     QString folderPath = nullptr;
     QString selectedDirectory;
     QString videoFileChunkPattern = "*.enc";
+    QStackedLayout* videoStackedLayout;
+    //
+    QWidget* videoView;
+    QWidget* watermarkPrimary;
+    QWidget* watermarkSecondary;
+    QWidget* watermarkFlash;
+    QWidget* watermarkDot;
+    FullScreenControlsWidget* controlsWrapper;
     //QString videoFileChunkPattern = "encrypted*.mp4";
     //qint64 sliderTime = -1;
     VideoProgressBarController *seekbarController = nullptr;
     EncryptionHandler *handler = nullptr;
-    QGraphicsTextItem *WATERMARK_TEXT = nullptr;
-    QGraphicsTextItem *WATERMARK_TEXT1 = nullptr;
+    //QGraphicsTextItem *WATERMARK_TEXT = nullptr;
+    //QGraphicsTextItem *WATERMARK_TEXT1 = nullptr;
 
     RedDotRecording *RECORDING_RED_DOT = nullptr;
     ScreenFlashLayer *RECORDING_FLASH_LAYER = nullptr;
@@ -205,6 +221,7 @@ private:
     QPushButton *fsSpeed1p2x = nullptr;
     QPushButton *fsSpeed1p5x = nullptr;
     QPushButton *fsSpeed2x = nullptr;
+    QComboBox *fsSpeedBox = nullptr;
     QLabel *fsPlaybackLabel = nullptr;
     CustomSeekbar *fsSeekbar = nullptr;
     QSlider *fsSeekbarVolume = nullptr;
@@ -217,6 +234,7 @@ private:
     WindowEventHandler *fullScreenEventHandler;
     NoInternetDialog *noIntentDialog = nullptr;
     NoInternetDialog *noIntentDialogForTimer = nullptr;
+    CustomGestureWidget* wMarkScreen;
     QString pauseButtonStyle =
                 "QPushButton {"
                 "    border: none;"
@@ -343,6 +361,8 @@ protected:
     }
 
     bool event(QEvent *event) override;
+private slots:
+    void on_comboBox_currentTextChanged(const QString &arg1);
 };
 
 #endif // MAINWINDOW_H

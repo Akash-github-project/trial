@@ -90,10 +90,11 @@ QString accessNamedPipes(){
 
 int main(int argc, char *argv[])
 {
-    qInstallMessageHandler(customMessageHandler);
+    //qInstallMessageHandler(customMessageHandler);
     QApplication a(argc, argv);
 
     qDebug()<<"starting the application";
+
   #ifndef LOCAL
     QString returnValue = accessNamedPipes();
     QStringList listOfArgs = returnValue.split("#");
@@ -140,15 +141,26 @@ int main(int argc, char *argv[])
     const QString identifier = listOfArgs[4];
     const QString video_item_id = listOfArgs[5];
     const QString deviceId = listOfArgs[6];
+
+    // qDebug()<<"video_id " << listOfArgs[1];
+    // qDebug()<<"token " << listOfArgs[2];
+    // qDebug()<<"course_id " << listOfArgs[3];
+    // qDebug()<<"identifier " << listOfArgs[4];
+    // qDebug()<<"video_item_id " << listOfArgs[5];
+    // qDebug()<<"deviceId " << listOfArgs[6];
+
+
     QString filePath = QString::fromStdString(folderPath);
   #endif
 
   #ifdef LOCAL
-     const QString token = "SU3MILNFFAn8tAni5EFwdRblvMnzSi";
-     const QString course_id = "66863639da8f59703445d9f2d";
+     const QString token = "TRhIZOqfVNqcslht9uRFr6PozcqlnL";
+     const QString course_id = "6739d7a9da8f59008ee76fb1";
+     const QString video_item_id = "6739d829da8f590090f6e1ed";
+     const QString deviceId = "/98BZXN2/CNWSC00891007A/";
 
-     const QString video_id = "6686845dda8f5976e0d41568";
-     QString filePath = "C:/Users/BharatCaller/AppData/Roaming/VidSafe/com.companyname.vidsafeproject/Data/VidSafeExtracted/66868469da8f5976e34f87bc.zip";
+     const QString video_id = "6739d829da8f590090f6e1ec";
+     QString filePath = "C:\\Users\\BharatCaller\\AppData\\Local\\VidSafe\\in.vidsafe.vajiram.test\\Data\\VidSafeExtracted\\8709031440\\6739d7a9da8f59008ee76fb1\\6739d829da8f590090f6e1ed.zip";
      const QString identifier = "8709031440";
   #endif
 

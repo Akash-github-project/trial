@@ -21,6 +21,8 @@ public:
      */
     explicit CustomGraphicsView(QWidget* parent = nullptr);
 
+    // void setRotationAngle(qreal angle);
+    // void paintEvent(QPaintEvent *event) override;
 protected:
     /**
      * @brief Override of the QGraphicsView wheel event handler

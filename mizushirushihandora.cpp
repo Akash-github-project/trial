@@ -1,14 +1,16 @@
 #include "mizushirushihandora.h"
 
+#include <QGraphicsOpacityEffect>
+#include <QtMath>
+
 
 MizuShirushiHandora::MizuShirushiHandora(QObject *parent) : QObject{parent} {}
 
-MizuShirushiHandora::MizuShirushiHandora(QObject *parent,PlayerControllerWidget *sceen,QString userIdentifier,int rows, int columns,MizuConfig * config)
+MizuShirushiHandora::MizuShirushiHandora(QObject *parent,QWidget *sceen,QString userIdentifier,int rows, int columns,MizuConfig * config)
     : QObject{parent}
 {
     this->config = config;
-    PRIMARY_WATERMARK_TEXT = new CustomGraphicsTextItem(userIdentifier,config->lgConfig);
-    PRIMARY_WATERMARK_TEXT->setOutlineColor(Qt::gray);
+    PRIMARY_WATERMARK_TEXT = new CustomGraphicsTextItem(userIdentifier,config->lgConfig,sceen);
     PRIMARY_WATERMARK_TEXT->setTextColor(config->lgConfig->color);
     PRIMARY_WATERMARK_TEXT->setOutlineThickness(1);
     this->numCols = columns;
@@ -16,22 +18,17 @@ MizuShirushiHandora::MizuShirushiHandora(QObject *parent,PlayerControllerWidget 
     this->numParts = rows;
     this->phoneNumber = userIdentifier;
     this->sceen = sceen;
-    textItems = QVector<QGraphicsTextItem*>();
-    this->sceen->addItem(PRIMARY_WATERMARK_TEXT);
+    textItems = QVector<QLabel*>();
+    QGraphicsOpacityEffect *opacityEffect = new QGraphicsOpacityEffect(this);
+    opacityEffect->setOpacity(0.85f); // 0.0 = fully transparent, 1.0 = fully opaque
+    //this->sceen->addItem(PRIMARY_WATERMARK_TEXT);
 
     for(int i = 0;i<config->smConfig->count_per_frame;i++){
-        QGraphicsTextItem * textItemsParts = new QGraphicsTextItem("");
+        QLabel * textItemsParts = new QLabel(sceen);
         QFont font("Arial", config->smConfig->font_size * 2, QFont::Bold);
         textItemsParts->setFont(font);
-        textItemsParts->setDefaultTextColor(Qt::red);
-        // int rotation = QRandomGenerator::global()->bounded(0,360);
-        // textItemsParts->setRotation(rotation);
-        textItemsParts->setPos(100, 100);
-        textItemsParts->setOpacity(0.85f);
-        textItemsParts->setPlainText("");
+        textItemsParts->setText("                                       ");
         textItems.append(textItemsParts);
-        this->sceen->addItem(textItemsParts);
-        this->sceen->update();
     }
 }
 
@@ -43,23 +40,43 @@ QColor MizuShirushiHandora::generateRandomColor() {
         return QColor(red,green,blue);
     }
 
+
     int indexOfColor = QRandomGenerator::global()->bounded(config->smConfig->colors.count());
     return QColor(config->smConfig->colors[indexOfColor]);
 }
 
 void MizuShirushiHandora::postionPrimary(qreal sceneWidth, qreal sceneHeight){
-    int textWidth = PRIMARY_WATERMARK_TEXT->boundingRect().width();
-    int posx = (sceneWidth / 2) - (textWidth / 2);
-    int posy = (sceneHeight / 2) - (sceneHeight / 3);
+    // Fixed initial dimensions of the watermark
+    int textWidth = 421; // Replace with the actual base width of the text
+    int textHeight = 207; // Replace with the actual base height of the text
 
+    // Calculate rotated bounding box dimensions
+    double radians = qDegreesToRadians(config->lgConfig->angle);
+    double rotatedWidth = textWidth * fabs(cos(radians)) + textHeight * fabs(sin(radians));
+    double rotatedHeight = textWidth * fabs(sin(radians)) + textHeight * fabs(cos(radians));
 
-    PRIMARY_WATERMARK_TEXT->setPos(posx,posy);
-    PRIMARY_WATERMARK_TEXT->setRotation(config->lgConfig->angle);
+    // Calculate centered position
+    int posx = (sceneWidth - rotatedWidth) / 2;
+    int posy = (sceneHeight - rotatedHeight) / 2;
+
+    // Set consistent font and appearance
     QFont font("Arial", config->lgConfig->font_size * 2, QFont::Bold);
     PRIMARY_WATERMARK_TEXT->setFont(font);
-    PRIMARY_WATERMARK_TEXT->setTextColor(Qt::white);
-    PRIMARY_WATERMARK_TEXT->setOpacity(config->lgConfig->transparency / 100.0f);
-    // this->sceen->addItem(PRIMARY_WATERMARK_TEXT);
+    PRIMARY_WATERMARK_TEXT->setTextColor(QColor(config->lgConfig->color));
+
+    QGraphicsOpacityEffect *opacityEffect = new QGraphicsOpacityEffect(this);
+    opacityEffect->setOpacity(config->lgConfig->transparency / 100.0f); // 0.0 = fully transparent, 1.0 = fully opaque
+    PRIMARY_WATERMARK_TEXT->setGraphicsEffect(opacityEffect);
+
+    // Apply rotation angle
+    PRIMARY_WATERMARK_TEXT->setRotationAngle(config->lgConfig->angle);
+
+    // Set geometry with fixed dimensions
+    PRIMARY_WATERMARK_TEXT->setGeometry(posx, posy, rotatedWidth, rotatedHeight);
+
+    // Debug output for verification
+    qDebug() << "Centered Geometry - x:" << posx << "y:" << posy
+             << "width:" << rotatedWidth << "height:" << rotatedHeight;
 }
 
 QString MizuShirushiHandora::generateRandomCharacters(int length) {
@@ -107,16 +124,23 @@ QString MizuShirushiHandora::insertSpecialChars(const std::string& input, const 
 }
 
 
-void MizuShirushiHandora::moveText(QGraphicsTextItem* textItem,int x,int y){
+void MizuShirushiHandora::moveText(QLabel* textItem,int x,int y){
     //textItem->setPlainText(part); // Update text
     qDebug()<<"x: "<<x << "y: " <<y;
-    textItem->setPos(x, y); // Reposition text items
+    textItem->setGeometry(QRect(x,y,textItem->size().width() * 3,textItem->size().height()));
+    //textItem->setPos(x, y); // Reposition text items
 }
 
 void MizuShirushiHandora::updateWatermark(int sceenWidth,int sceenHeight){
 
     // int cellWidth = width / this->numCols;  // Width of each column
     // int cellHeight = height / this->numRows; // Height of each row
+    int opacity = QRandomGenerator::global()->bounded(config->smConfig->transparent_start,config->smConfig->transparent_end);
+    if(opacity < 10){
+        opacity = 10;
+    }
+    QGraphicsOpacityEffect *opacityEffect = new QGraphicsOpacityEffect(this);
+    opacityEffect->setOpacity(opacity / 100.0f); // 0.0 = fully transparent, 1.0 = fully opaque
 
     QVector<QString> phoneParts;
     for(int i = 0;i < this->config->smConfig->count_per_frame;i++){
@@ -126,13 +150,13 @@ void MizuShirushiHandora::updateWatermark(int sceenWidth,int sceenHeight){
     // Grid dimensions and spacing
     try {
         for(int i = 0;i < textItems.size();i++){
-            textItems.value(i)->setDefaultTextColor(generateRandomColor());
-            int opacity = QRandomGenerator::global()->bounded(config->smConfig->transparent_start,config->smConfig->transparent_end);
-            if(opacity < 10){
-                opacity = 10;
-            }
-            textItems.value(i)->setOpacity(opacity / 100.0f);
-            textItems.value(i)->setPlainText(phoneParts[i]);
+            //textItems.value(i)->setDefaultTextColor(generateRandomColor());
+            //textItems.value(i)->setStyleSheet("color:" + generateRandomColor().toRgb());
+            textItems.value(i)->setGraphicsEffect(opacityEffect);
+            //textItems.value(i)->setOpacity();
+            textItems.value(i)->setText(phoneParts[i]);
+            // textItems.value(i)->setStyleSheet("color:blue;");
+            textItems.value(i)->setStyleSheet("color:" + generateRandomColor().name() + ";");
         }
         repositionGraphicsTextItems(sceenHeight,sceenWidth);
     }catch (std::exception e){
@@ -142,13 +166,13 @@ void MizuShirushiHandora::updateWatermark(int sceenWidth,int sceenHeight){
 
 //new code
 // Function to calculate distance between two points
-double MizuShirushiHandora::distance(const QPointF &p1, const QPointF &p2) {
+double MizuShirushiHandora::distance(const QPoint &p1, const QPoint &p2) {
     return std::sqrt(std::pow(p1.x() - p2.x(), 2) + std::pow(p1.y() - p2.y(), 2));
 }
 
 // Function to check if a new point overlaps with existing points
-bool MizuShirushiHandora::isOverlapping(const QPointF &newPoint, const QList<QPointF> &points, int itemSize, int padding) {
-    for (const QPointF &point : points) {
+bool MizuShirushiHandora::isOverlapping(const QPoint &newPoint, const QList<QPoint> &points, int itemSize, int padding) {
+    for (const QPoint &point : points) {
         if (distance(newPoint, point) < itemSize + padding) {
             return true; // Items overlap
         }
@@ -157,8 +181,8 @@ bool MizuShirushiHandora::isOverlapping(const QPointF &newPoint, const QList<QPo
 }
 
 // Function to generate random points ensuring no overlap
-QList<QPointF> MizuShirushiHandora::generateRandomPoints(int width, int height, int numPoints) {
-    QList<QPointF> points;
+QList<QPoint> MizuShirushiHandora::generateRandomPoints(int width, int height, int numPoints) {
+    QList<QPoint> points;
     for (int i = 0; i < numPoints; ++i) {
         int regionWidth = width / 2;
         int regionHeight = height / 2;
@@ -169,7 +193,7 @@ QList<QPointF> MizuShirushiHandora::generateRandomPoints(int width, int height, 
         int randomX = QRandomGenerator::global()->bounded(regionX + 60, regionX + regionWidth - 100);
         int randomY = QRandomGenerator::global()->bounded(regionY + 60, regionY + regionHeight - 100);
 
-        QPointF newPoint(randomX, randomY);
+        QPoint newPoint(randomX, randomY);
         points.append(newPoint);
     }
     return points;
@@ -179,10 +203,10 @@ QList<QPointF> MizuShirushiHandora::generateRandomPoints(int width, int height, 
 void MizuShirushiHandora::repositionGraphicsTextItems(int sceneHeight,int sceneWeight) {
     int numPoints = textItems.size();
     // Generate random non-overlapping positions for each text item
-    QList<QPointF> positions = generateRandomPoints(sceneWeight - 20, sceneHeight - 20, numPoints);
+    QList<QPoint> positions = generateRandomPoints(sceneWeight - 20, sceneHeight - 20, numPoints);
     postionPrimary(sceneWeight , sceneHeight);
     // Reposition each QGraphicsTextItem in the scene
     for (int i = 0; i < numPoints; ++i) {
-        textItems.value(i)->setPos(positions[i]);
+        textItems.value(i)->setGeometry(positions[i].x(),positions[i].y(),textItems.value(i)->width() ,textItems.value(i)->height());
     }
 }

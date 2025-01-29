@@ -2,7 +2,7 @@
 #include "UserPlaybackTimerTracker.h"
 #include <QDebug>
 
-UserPlaybackTimerTracker::UserPlaybackTimerTracker(QMediaPlayer *player,int callbackDuration ,QObject *parent)
+UserPlaybackTimerTracker::UserPlaybackTimerTracker(VLCPlayer *player,int callbackDuration ,QObject *parent)
     : QObject(parent),
     m_updateTimer(new QTimer(this)),
     m_serverUpdateTimer(new QTimer(this)),
@@ -15,9 +15,9 @@ UserPlaybackTimerTracker::UserPlaybackTimerTracker(QMediaPlayer *player,int call
         // Connect the update timer to update play time every second
         connect(m_updateTimer, &QTimer::timeout, this, &UserPlaybackTimerTracker::updatePlayTime);
         m_updateTimer->setInterval(1000); // Update every second
-
+        m_updateTimer->start();
         // Connect the media player state change signal to handle play, pause, and stop
-        connect(m_mediaPlayer, &QMediaPlayer::playbackStateChanged, this, &UserPlaybackTimerTracker::onMediaPlayerStateChanged);
+        connect(m_mediaPlayer, &VLCPlayer::mediaStatusChanged, this, &UserPlaybackTimerTracker::onMediaPlayerStateChanged);
 
         // Set up the server update timer to emit metrics signal every minute
         connect(m_serverUpdateTimer, &QTimer::timeout, this, &UserPlaybackTimerTracker::emitMetricsSignal);
@@ -51,22 +51,27 @@ qint64 UserPlaybackTimerTracker::getTotalPlayTime() const {
 }
 
 void UserPlaybackTimerTracker::updatePlayTime() {
+    qDebug()<<"starting the timer" ;
+    if (m_mediaPlayer->playbackState() == PlaybackState::Playing) {
+        m_accumulatedTime += 1000;
+        qWarning()<<"adding 1000" << m_accumulatedTime <<"final value";
+    }
     emit playTimeUpdated(getTotalPlayTime());
 }
 
-void UserPlaybackTimerTracker::onMediaPlayerStateChanged(QMediaPlayer::PlaybackState state) {
+void UserPlaybackTimerTracker::onMediaPlayerStateChanged(PlaybackState state) {
     switch (state) {
-    case QMediaPlayer::PlayingState:
+    case PlaybackState::Playing:
         if (!m_isRunning) {
             m_elapsedTimer.start();
             m_updateTimer->start();
             m_isRunning = true;
         }
         break;
-    case QMediaPlayer::PausedState:
-    case QMediaPlayer::StoppedState:
+    case PlaybackState::Paused:
+    case PlaybackState::Ended:
         if (m_isRunning) {
-            m_accumulatedTime += m_elapsedTimer.elapsed();
+            //m_accumulatedTime += m_elapsedTimer.elapsed();
             m_updateTimer->stop();
             m_isRunning = false;
         }
