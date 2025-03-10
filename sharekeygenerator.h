@@ -13,11 +13,11 @@
 
 // cryptopp imports
 
-#include <cryptopp/cryptlib.h>
-#include <cryptopp/sha.h>
-#include <cryptopp/hkdf.h>
-#include <cryptopp/osrng.h>
-#include <cryptopp/hex.h>
+// #include <cryptopp/cryptlib.h>
+// #include <cryptopp/sha.h>
+// #include <cryptopp/hkdf.h>
+// #include <cryptopp/osrng.h>
+// #include <cryptopp/hex.h>
 
 class ShareKeyGenerator : public QObject
 {

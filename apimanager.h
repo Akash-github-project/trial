@@ -39,10 +39,10 @@ private:
     QString deviceId = "";
 #ifdef PROD
     QString url = "https://secure.vidsafe.in";
-    QString appVersion = "250103";
+    QString appVersion = "250301";
 #else
    QString url = "https://test-server.vidsafe.in";
-    QString appVersion = "241002";
+   QString appVersion = "250301";
 #endif
 public:
     BSONObjectID * bsonObjectGenerator;

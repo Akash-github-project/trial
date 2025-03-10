@@ -151,28 +151,29 @@ QByteArray ShareKeyGenerator::publicKeyToUncompressedHex(EC_KEY* ecKey) {
 QByteArray ShareKeyGenerator::deriveKeyFromSharedSecret(const QByteArray& sharedSecret, const QByteArray& info, size_t keyLength) {
     //ECDH_compute_key()
 
-    using namespace CryptoPP;
+    // using namespace CryptoPP;
 
-    CryptoPP::byte* sharedSecretBytes = const_cast<CryptoPP::byte*>(reinterpret_cast<const CryptoPP::byte*>(sharedSecret.data()));
-    CryptoPP::byte* infoBytes = const_cast<CryptoPP::byte*>(reinterpret_cast<const CryptoPP::byte*>(info.data()));
+    // CryptoPP::byte* sharedSecretBytes = const_cast<CryptoPP::byte*>(reinterpret_cast<const CryptoPP::byte*>(sharedSecret.data()));
+    // CryptoPP::byte* infoBytes = const_cast<CryptoPP::byte*>(reinterpret_cast<const CryptoPP::byte*>(info.data()));
 
-    // Create a byte array to hold the derived key
-    std::vector<CryptoPP::byte> derivedKey(keyLength);
-    // Create an HKDF object using SHA256
-    CryptoPP::HKDF<CryptoPP::SHA256> hkdf;
-    // Derive the key using HKDF
-    hkdf.DeriveKey(
-        derivedKey.data(),          // Output key buffer
-        derivedKey.size(),          // Length of the output key
-        sharedSecretBytes,          // Input keying material (shared secret)
-        sharedSecret.size(),        // Length of the shared secret
-        nullptr,                    // No salt (optional, can be nullptr)
-        0,                          // Length of salt (0 if no salt)
-        infoBytes,                  // Context info (optional, can be nullptr)
-        info.size()                 // Length of the context info
-        );
-    // Convert derived key to QByteArray and return
-    return QByteArray(reinterpret_cast<const char*>(derivedKey.data()), derivedKey.size());
+    // // Create a byte array to hold the derived key
+    // std::vector<CryptoPP::byte> derivedKey(keyLength);
+    // // Create an HKDF object using SHA256
+    // CryptoPP::HKDF<CryptoPP::SHA256> hkdf;
+    // // Derive the key using HKDF
+    // hkdf.DeriveKey(
+    //     derivedKey.data(),          // Output key buffer
+    //     derivedKey.size(),          // Length of the output key
+    //     sharedSecretBytes,          // Input keying material (shared secret)
+    //     sharedSecret.size(),        // Length of the shared secret
+    //     nullptr,                    // No salt (optional, can be nullptr)
+    //     0,                          // Length of salt (0 if no salt)
+    //     infoBytes,                  // Context info (optional, can be nullptr)
+    //     info.size()                 // Length of the context info
+    //     );
+    // // Convert derived key to QByteArray and return
+    // return QByteArray(reinterpret_cast<const char*>(derivedKey.data()), derivedKey.size());
+    return QByteArray();
 }
 
 // HKDF Extract + Expand

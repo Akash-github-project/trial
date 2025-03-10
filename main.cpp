@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 
   #ifndef LOCAL
     QString returnValue = accessNamedPipes();
-    QStringList listOfArgs = returnValue.split("#");
+    QStringList listOfArgs = returnValue.split("|#|#|");
 
     if(listOfArgs.length() != 7) {
         qDebug()<<"immproper number of arguments";
