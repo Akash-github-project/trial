@@ -3,11 +3,13 @@
 RedDotWidget::RedDotWidget(QWidget *parent, const QColor &color)
     : QWidget(parent), dotColor(color) {
     setFixedSize(20, 20); // Set size of the dot
+    this->parent = parent;
+    this->setStyleSheet("background-color:yellow;");
 }
 
 void RedDotWidget::setColor(QColor color)
 {
-    dotColor= color;
+    dotColor = color;
     update();
 }
 

@@ -29,7 +29,14 @@ MizuShirushiHandora::MizuShirushiHandora(QObject *parent,QWidget *sceen,QString 
         textItemsParts->setFont(font);
         textItemsParts->setText("                                       ");
         textItems.append(textItemsParts);
+        animateLabel(textItemsParts);
     }
+    animationTimer = new QTimer(this);
+    animationTimer->setTimerType(Qt::PreciseTimer);
+    // the 500 is added to account for the pasue after fade in animation
+    animationTimer->start((this->config->smConfig->interval * 1000) + 500);
+
+    connect(animationTimer,&QTimer::timeout,this,&MizuShirushiHandora::moveWm);
 }
 
 QColor MizuShirushiHandora::generateRandomColor() {
@@ -39,7 +46,6 @@ QColor MizuShirushiHandora::generateRandomColor() {
         int blue = QRandomGenerator::global()->bounded(256);  // Random value between 0 and 255
         return QColor(red,green,blue);
     }
-
 
     int indexOfColor = QRandomGenerator::global()->bounded(config->smConfig->colors.count());
     return QColor(config->smConfig->colors[indexOfColor]);
@@ -75,8 +81,8 @@ void MizuShirushiHandora::postionPrimary(qreal sceneWidth, qreal sceneHeight){
     PRIMARY_WATERMARK_TEXT->setGeometry(posx, posy, rotatedWidth, rotatedHeight);
 
     // Debug output for verification
-    qDebug() << "Centered Geometry - x:" << posx << "y:" << posy
-             << "width:" << rotatedWidth << "height:" << rotatedHeight;
+    //qDebug() << "Centered Geometry - x:" << posx << "y:" << posy
+             //<< "width:" << rotatedWidth << "height:" << rotatedHeight;
 }
 
 QString MizuShirushiHandora::generateRandomCharacters(int length) {
@@ -126,42 +132,15 @@ QString MizuShirushiHandora::insertSpecialChars(const std::string& input, const 
 
 void MizuShirushiHandora::moveText(QLabel* textItem,int x,int y){
     //textItem->setPlainText(part); // Update text
-    qDebug()<<"x: "<<x << "y: " <<y;
+    //qDebug()<<"x: "<<x << "y: " <<y;
     textItem->setGeometry(QRect(x,y,textItem->size().width() * 3,textItem->size().height()));
     //textItem->setPos(x, y); // Reposition text items
 }
 
 void MizuShirushiHandora::updateWatermark(int sceenWidth,int sceenHeight){
 
-    // int cellWidth = width / this->numCols;  // Width of each column
-    // int cellHeight = height / this->numRows; // Height of each row
-    int opacity = QRandomGenerator::global()->bounded(config->smConfig->transparent_start,config->smConfig->transparent_end);
-    if(opacity < 10){
-        opacity = 10;
-    }
-    QGraphicsOpacityEffect *opacityEffect = new QGraphicsOpacityEffect(this);
-    opacityEffect->setOpacity(opacity / 100.0f); // 0.0 = fully transparent, 1.0 = fully opaque
-
-    QVector<QString> phoneParts;
-    for(int i = 0;i < this->config->smConfig->count_per_frame;i++){
-        std::string specialChars = "!@#$%^&*()";
-        phoneParts.append(insertSpecialChars(this->phoneNumber.toStdString(),specialChars,5));
-    }
-    // Grid dimensions and spacing
-    try {
-        for(int i = 0;i < textItems.size();i++){
-            //textItems.value(i)->setDefaultTextColor(generateRandomColor());
-            //textItems.value(i)->setStyleSheet("color:" + generateRandomColor().toRgb());
-            textItems.value(i)->setGraphicsEffect(opacityEffect);
-            //textItems.value(i)->setOpacity();
-            textItems.value(i)->setText(phoneParts[i]);
-            // textItems.value(i)->setStyleSheet("color:blue;");
-            textItems.value(i)->setStyleSheet("color:" + generateRandomColor().name() + ";");
-        }
-        repositionGraphicsTextItems(sceenHeight,sceenWidth);
-    }catch (std::exception e){
-        qDebug()<<e.what() << " error";
-    }
+    this->screenHeight = sceenHeight;
+    this->screenWidth = sceenWidth;
 }
 
 //new code
@@ -203,10 +182,99 @@ QList<QPoint> MizuShirushiHandora::generateRandomPoints(int width, int height, i
 void MizuShirushiHandora::repositionGraphicsTextItems(int sceneHeight,int sceneWeight) {
     int numPoints = textItems.size();
     // Generate random non-overlapping positions for each text item
+    //qDebug()<<"s " <<sceneHeight<<sceneWeight;
     QList<QPoint> positions = generateRandomPoints(sceneWeight - 20, sceneHeight - 20, numPoints);
     postionPrimary(sceneWeight , sceneHeight);
     // Reposition each QGraphicsTextItem in the scene
     for (int i = 0; i < numPoints; ++i) {
         textItems.value(i)->setGeometry(positions[i].x(),positions[i].y(),textItems.value(i)->width() ,textItems.value(i)->height());
+        //qDebug() <<" X" <<positions[i].x() << "Y" << positions[i].y();
+    }
+}
+
+
+void MizuShirushiHandora::animateLabel(QLabel *label) {
+    if (!effects.contains(label)) {
+        QGraphicsOpacityEffect *effect = new QGraphicsOpacityEffect(label);
+        effects[label] = effect;
+        label->setGraphicsEffect(effect);
+
+        // Cleanup when QLabel is deleted
+        QObject::connect(label, &QObject::destroyed, this, [this, label]() {
+            effects.remove(label);
+        });
+    }
+
+    QGraphicsOpacityEffect *effect = effects[label];
+
+    QPropertyAnimation *animationFadeIn = new QPropertyAnimation(effect, "opacity");
+    animationFadeIn->setDuration(this->config->smConfig->interval * 499);
+    animationFadeIn->setStartValue(0.0);
+    animationFadeIn->setEndValue(1.0);
+    animationFadeIn->setEasingCurve(QEasingCurve::InOutQuad);
+
+    QPropertyAnimation *animationFadeOut = new QPropertyAnimation(effect, "opacity");
+    animationFadeOut->setDuration(this->config->smConfig->interval * 499);
+    animationFadeOut->setStartValue(1.0);
+    animationFadeOut->setEndValue(0.0);
+    animationFadeOut->setEasingCurve(QEasingCurve::InOutQuad);
+    //
+
+    QSequentialAnimationGroup *sequenceAnim = new QSequentialAnimationGroup(this);
+    sequenceAnim->addAnimation(animationFadeIn);
+    sequenceAnim->addPause(500);
+    sequenceAnim->addAnimation(animationFadeOut);
+    sequenceAnim->setLoopCount(-1);
+    sequenceAnim->start();
+}
+
+void MizuShirushiHandora::moveWm()
+{
+    // int cellWidth = width / this->numCols;  // Width of each column
+    // int cellHeight = height / this->numRows; // Height of each row
+    //qDebug()<<"in "<<config->smConfig->transparent_start;
+    //qDebug()<<"out "<<config->smConfig->transparent_end;
+    int opacity = QRandomGenerator::global()->bounded(config->smConfig->transparent_start,config->smConfig->transparent_end);
+    //int opacity = QRandomGenerator::global()->bounded(50,100);
+    //qDebug()<<"opacity "<<opacity;
+    if(opacity < 10){
+        opacity = 10;
+    }
+    // QGraphicsOpacityEffect *opacityEffect = new QGraphicsOpacityEffect(this);
+    // opacityEffect->setOpacity(opacity / 100.0f); // 0.0 = fully transparent, 1.0 = fully opaque
+
+    QVector<QString> phoneParts;
+    for(int i = 0;i < this->config->smConfig->count_per_frame;i++){
+        std::string specialChars = "!@#$%^&*()";
+        phoneParts.append(insertSpecialChars(this->phoneNumber.toStdString(),specialChars,5));
+    }
+    // Grid dimensions and spacing
+    try {
+        for(int i = 0;i < textItems.size();i++){
+
+            int alpha = opacity * 255 / 100;  // Convert to alpha (0 - 255)
+
+            // Define the hex color
+            QString hexColor = generateRandomColor().name();  // Example hex color code
+
+            bool ok = false;
+            // Use the alpha value with the color to create an rgba string
+            QString rgbaColor = QString("color: rgba(%1, %2, %3, %4);")
+                        .arg(hexColor.mid(1, 2).toInt(&ok, 16))   // Red
+                        .arg(hexColor.mid(3, 2).toInt(&ok, 16))   // Green
+                        .arg(hexColor.mid(5, 2).toInt(&ok, 16))   // Blue
+                        .arg(alpha);
+
+
+            textItems.value(i)->setText(phoneParts[i]);
+            // textItems.value(i)->setStyleSheet("color:blue;");
+            textItems.value(i)->setStyleSheet(rgbaColor);
+            //textItems.value(i)->setGraphicsEffect(effect);
+            //textItems.value(i)->setStyleSheet("color:" + generateRandomColor().name() + ";");
+            //qDebug()<<this->screenHeight;
+            repositionGraphicsTextItems(this->screenHeight,this->screenWidth);
+        }
+    }catch (std::exception e){
+        qDebug()<<e.what() << " error";
     }
 }

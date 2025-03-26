@@ -39,10 +39,10 @@ private:
     QString deviceId = "";
 #ifdef PROD
     QString url = "https://secure.vidsafe.in";
-    QString appVersion = "250301";
+    QString appVersion = "250302";
 #else
    QString url = "https://test-server.vidsafe.in";
-   QString appVersion = "250301";
+   QString appVersion = "250302";
 #endif
 public:
     BSONObjectID * bsonObjectGenerator;
@@ -65,7 +65,8 @@ public:
     QString handlePreconditionFailed(QJsonDocument errorData);
     void sendErrorInfo(QJsonDocument errorData, QString url);
 private:
-    QSslConfiguration getSslConfig(const QByteArray &pfxData, const QString &password);
+    QSslConfiguration getSslConfig();
+    //QSslConfiguration getSslConfig(const QByteArray &pfxData, const QString &password);
 signals:
     void onKeyFetchFinished(QList<VideoData> list,MizuConfig * config,int duration);
     void noNetwork(QString message);

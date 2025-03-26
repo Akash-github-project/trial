@@ -30,6 +30,7 @@ private:
     void dotLayerColorChange();
     void spaceLayerColorChange();
     void dashLayerColorChange();
+    void dollarLayerColorChange();
 };
 
 #endif // REDDOTRECORDING_H

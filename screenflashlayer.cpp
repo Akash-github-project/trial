@@ -4,7 +4,7 @@
 ScreenFlashLayer::ScreenFlashLayer(QWidget *scene,const std::string &phoneNumber,FlashMizu * config,QWidget *parent)
     : QWidget( parent) {
     this->config = config;
-    emitter = new PatternEmitter(phoneNumber,parent);
+    emitter = new PatternEmitter(phoneNumber,this->config->chn_duration,parent);
     recLayer = new QWidget(scene);
     //scene->addItem(recLayer);
     //recLayer->setPen(Qt::NoPen);

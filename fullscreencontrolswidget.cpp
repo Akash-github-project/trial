@@ -11,7 +11,9 @@ FullScreenControlsWidget::FullScreenControlsWidget(QWidget *parent,QWidget* cont
     inactivityTimer->setInterval(3000); // 3 seconds
     inactivityTimer->setSingleShot(true);
     connect(inactivityTimer, &QTimer::timeout, this, [controlWidget,this](){
-        this->animateVisibility(controlWidget,false);
+        if(!controlWidget->underMouse()){
+            this->animateVisibility(controlWidget,false);
+        }
         //this->controlWidget->hide();
     });
 

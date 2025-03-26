@@ -19,7 +19,7 @@
 #include <QVideoWidget>
 #include <QPixmap>
 #include <iostream>
-///
+//
 #include <QFile>
 #include <QBuffer>
 #include <QDir>
@@ -94,7 +94,7 @@ public:
 public:
     const GUID GUID_CLASS_MONITOR = {0x4d36e96e, 0xe325, 0x11ce, 0xbf, 0xc1, 0x08, 0x00, 0x2b, 0xe1, 0x03, 0x18};
     //PlayerControllerWidget *scene;
-    MizuShirushiHandora* watermarkHandler;
+    MizuShirushiHandora* watermarkHandler = nullptr;
     //QMediaPlayer *Player;
     VLCPlayer *Player;
     // Create a QGraphicsScene
@@ -102,7 +102,7 @@ public:
     //QGraphicsVideoItem *videoItem = nullptr;
     PlaybackRateHandler *playbackRateHandler;
     WarningDialog * warningDialog;
-    UserPlaybackTimerTracker * playbackTimer;
+    UserPlaybackTimerTracker * playbackTimer = nullptr;
     VideoWidget* widgetVideo;
 
 public:
@@ -112,6 +112,8 @@ public:
     int oldHeight = 0;
     int oldWidth = 0;
     int durationAverageInSeconds = 60;
+    int retryCounter = 3;
+    int retryInterval = 5000; // 5000 ms = 5s;
     qint64 lastForward = 0;
     qint64 lastBackward = 0;
     int detectMonitors();
@@ -210,7 +212,7 @@ private:
     RedDotRecording *RECORDING_RED_DOT = nullptr;
     ScreenFlashLayer *RECORDING_FLASH_LAYER = nullptr;
     QMetaObject::Connection seekbarConnection ;
-    std::string phoneNumber = "828282828228";
+    std::string phoneNumber = " ";
     VideoProgressBarController *fsSeekbarController = nullptr;
     QPushButton *fsPlayPauseButton = nullptr;
     QPushButton *fsStopButton = nullptr;
@@ -267,6 +269,7 @@ private:
                 "}";
 
      qint64 lastDisplayTime = 0;
+     qint64 intervalForWm = 0;
 private:
      /////////////////
     void updateDuration(qint64 Duration);
@@ -296,6 +299,7 @@ private:
         }
         return QMainWindow::eventFilter(watched, event);
     }
+    void preventSleep(bool enable);
 protected:
     bool nativeEvent(const QByteArray &eventType, void *message, qintptr *result) override {
         MSG *msg = static_cast<MSG*>(message); // Correctly cast message to MSG*

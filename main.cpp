@@ -15,8 +15,7 @@
 #include <QDebug>
 #include <windows.h>
 
-
-//#define LOCAL true;
+//#define LOCAL ;
 
 namespace fs = std::filesystem;
 bool isValidPath(const std::string& path)
@@ -41,11 +40,18 @@ bool isValidPath(const std::string& path)
 
 void customMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
-    QString homeDir = QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
-
     // Define your log file name
-    QString logFileName = homeDir + "/vidsafe.log";
+    // Ensure logs directory exists
+    QString logsDirPath = QCoreApplication::applicationDirPath() + "/logs";
+    QDir logsDir(logsDirPath);
+    if (!logsDir.exists()) {
+        logsDir.mkpath(".");
+    }
+
+    // Define your log file name with logs folder
+    QString logFileName = logsDirPath + "/" + QDateTime::currentDateTime().toString("yyyy-MM-dd") + "-vidsafe.txt";
     static QFile logFile(logFileName);
+
     if (!logFile.isOpen()) {
         logFile.open(QIODevice::Append | QIODevice::Text);
     }
@@ -54,35 +60,39 @@ void customMessageHandler(QtMsgType type, const QMessageLogContext &context, con
     out << QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss.zzz ") << " ";
 
     switch (type) {
+#ifdef LOCAL
     case QtDebugMsg:
-        out << "DEBUG: ";
+        out << "DEBUG: "<< msg << Qt::endl;
         break;
     case QtInfoMsg:
-        out << "INFO: ";
+        out << "INFO: "<< msg << Qt::endl;
         break;
     case QtWarningMsg:
-        out << "WARNING: ";
+        out << "WARNING: " << msg << Qt::endl;
         break;
     case QtCriticalMsg:
-        out << "CRITICAL: ";
-        break;
-    case QtFatalMsg:
-        out << "FATAL: ";
+        out << "CRITICAL: " << msg << Qt::endl;
         break;
     }
-    out << msg << Qt::endl;
+#endif
+#ifndef LOCAL
+    case QtWarningMsg:
+        out << "LOG: ";
+        out << msg << Qt::endl;
+        break;
+    }
+#endif
 }
 
 QString accessNamedPipes(){
     QFile pipe("\\\\.\\pipe\\VideoPlayerStream");
     if (!pipe.open(QIODevice::ReadOnly)) {
-        qDebug() << "Failed to open pipe.";
+        qWarning() << "Failed to open pipe.";
         return QString("");
     }
 
     QTextStream stream(&pipe);
     QString message = stream.readLine();
-    qDebug() << "Message from pipe:" << message;
     return message;
 }
 
@@ -90,17 +100,16 @@ QString accessNamedPipes(){
 
 int main(int argc, char *argv[])
 {
-    //qInstallMessageHandler(customMessageHandler);
+    qInstallMessageHandler(customMessageHandler);
     QApplication a(argc, argv);
-
-    qDebug()<<"starting the application";
+    qWarning()<<"starting the application";
 
   #ifndef LOCAL
     QString returnValue = accessNamedPipes();
     QStringList listOfArgs = returnValue.split("|#|#|");
 
     if(listOfArgs.length() != 7) {
-        qDebug()<<"immproper number of arguments";
+        qWarning()<<"immproper number of arguments";
         return 1;
     }
 
@@ -109,7 +118,7 @@ int main(int argc, char *argv[])
 
     if (!isValidPath(folderPath))
     {
-        qDebug() << "Invalid or inaccessible folder path." << "count --" << argc;
+        qWarning() << "Invalid or inaccessible folder path." << "count --" << argc;
         return 1;
     }
 
@@ -126,12 +135,12 @@ int main(int argc, char *argv[])
     }
     catch (const fs::filesystem_error& e)
     {
-        qDebug() << "Filesystem error during directory iteration: " << e.what() ;
+        qWarning() << "Filesystem error during directory iteration: " << e.what() ;
         return 1;
     }
     catch (const std::exception& e)
     {
-        qDebug() << "General error during directory iteration: " << e.what();
+        qWarning() << "General error during directory iteration: " << e.what();
         return 1;
     }
 
@@ -154,17 +163,18 @@ int main(int argc, char *argv[])
   #endif
 
   #ifdef LOCAL
-     const QString token = "TRhIZOqfVNqcslht9uRFr6PozcqlnL";
-     const QString course_id = "6739d7a9da8f59008ee76fb1";
-     const QString video_item_id = "6739d829da8f590090f6e1ed";
+     const QString token = "7BPOSiooLNHRpU6fpKefKtOXaWvlqR";
+     const QString course_id = "6746cd03da8f59733bddcdbe";
+     const QString video_item_id = "6746d254da8f597723f09a21";
      const QString deviceId = "/98BZXN2/CNWSC00891007A/";
 
-     const QString video_id = "6739d829da8f590090f6e1ec";
-     QString filePath = "C:\\Users\\BharatCaller\\AppData\\Local\\VidSafe\\in.vidsafe.vajiram.test\\Data\\VidSafeExtracted\\8709031440\\6739d7a9da8f59008ee76fb1\\6739d829da8f590090f6e1ed.zip";
+     const QString video_id = "6746d254da8f597723f09a20";
+     QString filePath = "C:\\Users\\BharatCaller\\AppData\\Local\\VidSafe\\in.vidsafe.vajiram.test\\Data\\VidSafeExtracted\\8709031440\\6746cd03da8f59733bddcdbe\\6746d254da8f597723f09a21.zip";
      const QString identifier = "8709031440";
   #endif
 
     //std::setenv("QT_MULTIMEDIA_PREFERRED_PLUGINS", "windowsmediafoundation", 1);
+    qWarning()<<"starting the app";
     MainWindow w(filePath,token,course_id,video_id,video_item_id,identifier,deviceId,nullptr);
     w.show();
     return a.exec();

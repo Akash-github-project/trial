@@ -97,7 +97,8 @@ MainWindow::MainWindow(QString filePath,QString token,QString course_id,QString 
      ui->pushButton_1p5x->hide();
      ui->pushButton_2x->hide();
     // ui->label_3->hide();
-
+     ui->comboBox->setEditable(false);
+     preventSleep(true);
 }
 
 void MainWindow::sendTimeToServer(qint64 playTimeInSeconds){
@@ -111,16 +112,16 @@ void MainWindow::enumerateDisplays() {
     int deviceIndex = 0;
 
     while (EnumDisplayDevices(NULL, deviceIndex, &displayDevice, 0)) {
-        qWarning() << "Device Name: " << displayDevice.DeviceName ;
-        qWarning() << "Device String: " << displayDevice.DeviceString ;
+        //qWarning() << "Device Name: " << displayDevice.DeviceName ;
+        //qWarning() << "Device String: " << displayDevice.DeviceString ;
 
 
         if (displayDevice.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE) {
-            qDebug() << "Primary Device";
+            qDebug() << "P-D";
         }
 
         if (displayDevice.StateFlags & DISPLAY_DEVICE_MIRRORING_DRIVER) {
-            qDebug() << "Mirrored Display";
+            qDebug() << "M-D";
         }
 
         qDebug() << "---------------------";
@@ -152,6 +153,14 @@ void MainWindow::showWarningDialog(){
     }
 }
 
+
+void MainWindow::preventSleep(bool enable) {
+    if (enable) {
+        SetThreadExecutionState(ES_CONTINUOUS | ES_DISPLAY_REQUIRED | ES_SYSTEM_REQUIRED);
+    } else {
+        SetThreadExecutionState(ES_CONTINUOUS);
+    }
+}
 
 void MainWindow::disableScreenRecording(){
     // Get the native window handle
@@ -274,6 +283,7 @@ void MainWindow::onPlaybackRateChanged(float playbackRate){
 
 MainWindow::~MainWindow()
 {
+    preventSleep(false);
     delete ui;
 }
 
@@ -293,14 +303,14 @@ void MainWindow::positionChanged(qint64 duration)
 {
     // qDebug()<<"-------------------------";
     // qDebug()<<"positionChanged called";
-    qDebug()<<currentIndex << "current index -- duration";
-    qDebug()<<videoTimeArray << "video time array -- duration";
+    //qDebug()<<currentIndex << "current index -- duration";
+    //qDebug()<<videoTimeArray << "video time array -- duration";
     int sum = 0;
     for(int i= 0;i<currentIndex;i++){
         sum += videoTimeArray[i];
     }
     //qint64 moveTo = (sum / 1000) + (duration / 1000) ;
-    qDebug()<<"sum" << sum;
+    //qDebug()<<"sum" << sum;
     qint64 moveTo = (sum / 1000) + duration;
     if(IS_FULL_SCREEN && fsSeekbar != nullptr){
         if(!fsSeekbar->isSliderDown() && !fsSeekbarController->seekPending) {
@@ -313,7 +323,7 @@ void MainWindow::positionChanged(qint64 duration)
         }
     }
     updateDuration(moveTo);
-    if((QDateTime::currentSecsSinceEpoch() - lastDisplayTime > 1 )){
+    if((QDateTime::currentSecsSinceEpoch() - lastDisplayTime > 1)){
         lastDisplayTime = QDateTime::currentSecsSinceEpoch();
         //WATERMARK_TEXT->setPos(x,y);
         ///TODO: come back here
@@ -360,10 +370,10 @@ void MainWindow::updateDuration(qint64 Duration)
         if (videoDurationInSeconds > 3600) Format = "hh:mm:ss";
         else Format = "mm:ss";
 
-        qDebug()<<"Duration "<<Duration;
-        qDebug()<<videoDurationInSeconds << "video duration in seconds";
-        qDebug()<<CurrentTime << "Current Time";
-        qDebug()<<TotalTime << "Tota Time";
+        //qDebug()<<"Duration "<<Duration;
+        //qDebug()<<videoDurationInSeconds << "video duration in seconds";
+        //qDebug()<<CurrentTime << "Current Time";
+        //qDebug()<<TotalTime << "Tota Time";
 
         // qDebug()<<"time ------ " << TotalTime.toString(Format);
         if(IS_FULL_SCREEN && fsSeekbar != nullptr && fsTotalTime != nullptr && fsCurrentTime != nullptr){
@@ -380,6 +390,7 @@ void MainWindow::updateDuration(qint64 Duration)
 
 void MainWindow::on_actionOpen_triggered(MizuConfig * config)
 {
+    this->intervalForWm = config->smConfig->interval;
     selectedDirectory = this->folderPath;
     QDir directory(selectedDirectory);
     QString filter = videoFileChunkPattern;
@@ -881,7 +892,7 @@ void MainWindow::loadVideo(PlaybackState status){
         currentIndex = videoIndex;
     }
 
-    qWarning()<<videoIndex;
+    //qWarning()<<videoIndex;
     QDir directory(selectedDirectory);
     QStringList filesToPlay = getFileList(selectedDirectory);
     if(filesToPlay.length() > videoIndex){
@@ -1098,6 +1109,8 @@ void MainWindow::loadVideo(PlaybackState status){
         if(pausedForNoInternet){
             fsSeekbar->setDisabled(true);
         }
+        this->fsSpeedBox->setCurrentText(ui->comboBox->currentText());
+        this->fsSpeedBox->setEditable(false);
      }catch(std::exception e){
          qDebug()<<e.what() << "exception";
      }
@@ -1107,6 +1120,8 @@ void MainWindow::loadVideo(PlaybackState status){
  void MainWindow::on_normal_button_pressed(){
      try {
          if(!IS_FULL_SCREEN) return;
+         QString speedText = this->fsSpeedBox->currentText();
+         this->fsSpeedBox->unsetCursor();
          //controls->hide();
          controlsWrapper->hide();
          int currentSeekValue = fsSeekbarController->getValue();
@@ -1149,6 +1164,7 @@ void MainWindow::loadVideo(PlaybackState status){
          onlyUpdatePlaybackTimeText(currentTimeLabelValue);
          update();
          ui->video_section->update();
+         ui->comboBox->setCurrentText(speedText);
          //videoItem->update();
      }catch (std::exception &ex){
          qDebug()<<"exception !!!!!!!!!!!!!!!!" <<ex.what();
@@ -1157,7 +1173,7 @@ void MainWindow::loadVideo(PlaybackState status){
 
  //void MainWindow::handlePlayPauseButtonState(QMediaPlayer::PlaybackState playbackState){
  void MainWindow::handlePlayPauseButtonState(PlayPauseState playbackState){
-     qWarning()<<playbackState;
+     //qWarning()<<playbackState;
      if(IS_FULL_SCREEN){
          if(playbackState == PlayPauseState::Play){
             fsPlayPauseButton->setStyleSheet( pauseButtonStyle );
@@ -1252,12 +1268,14 @@ void MainWindow::loadVideo(PlaybackState status){
      }
  }
 
+
  bool MainWindow::event(QEvent *event)  {
      const bool ret_val = QMainWindow::event(event);
-     if(!videoStarted && event->type() == QEvent::Paint)
-     {
-         videoStarted = true;
-         manager->GetKeysForChunk(this->token,this->course_id,this->video_id,this->video_item_id);
+
+     if(!this->videoStarted && event->type() == QEvent::Paint)
+    {
+        this->videoStarted = true;
+        this->manager->GetKeysForChunk(this->token,this->course_id,this->video_id,this->video_item_id);
      }
      return ret_val;
  }
@@ -1397,7 +1415,7 @@ void MainWindow::loadVideo(PlaybackState status){
            on_actionOpen_triggered(config);
            manager->getSessionId(token,course_id,video_item_id,video_id);
 
-            qDebug()<<videoTimeArray << "video time array -- duration";
+            //qDebug()<<videoTimeArray << "video time array -- duration";
      }else {
          QTimer::singleShot(0, this, [this]() {
             showWarningDialog();
@@ -1417,13 +1435,32 @@ void MainWindow::loadVideo(PlaybackState status){
  }
 
  void MainWindow::onNoInternet(QString message){
-     qWarning()<<"in no internet";
+     //qWarning()<<"in no internet";
      noIntentDialog = new NoInternetDialog(this,message);
      noIntentDialog->show();
      connect(noIntentDialog,&NoInternetDialog::onNoInternetDialogClose,this,&MainWindow::closeNoInternetDialogAndRetry);
  }
 
  void MainWindow::userPlaytimeDataFailed(QString message){
+     if(this->retryCounter > 0){
+         //qWarning()<<"failed to send user data";
+         if(this->playbackTimer != nullptr){
+             QTimer::singleShot(this->retryInterval, this, [this]() {
+                 QList<qint64> pendingItems = playbackTimer->getPendingItemList();
+                 if(pendingItems.length() > 0){
+                qint64 currentSeekbarPostion = getCurrentSeekabrPosition();
+                qint64 lastPendingItem = pendingItems.first();
+                manager->sendUserWatchTime(token,course_id,video_item_id,video_id,lastPendingItem,currentSeekbarPostion);
+                this->retryCounter--;
+                 }
+            });
+         }else {
+
+         }
+        return;
+     }
+
+
      Player->pause();
      pausedForNoInternet = true;
      if(IS_FULL_SCREEN){
@@ -1469,6 +1506,7 @@ void MainWindow::loadVideo(PlaybackState status){
  }
 
  void MainWindow::userPlaytimeDataSuccess(){
+     this->retryCounter = 3;
      playbackTimer->removeLastPendingItem();
      if(IS_FULL_SCREEN){
          fsSeekbar->setDisabled(false);
@@ -1513,5 +1551,10 @@ void MainWindow::loadVideo(PlaybackState status){
      }
      Player->changeSpeed(requiredSpeed);
      playbackRateHandler->chnagePlaybackRate(requiredSpeed);
+     if(IS_FULL_SCREEN){
+         this->fsSpeedBox->clearFocus();
+     }else {
+         ui->comboBox->clearFocus();
+     }
  }
 

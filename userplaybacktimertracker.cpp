@@ -23,7 +23,7 @@ UserPlaybackTimerTracker::UserPlaybackTimerTracker(VLCPlayer *player,int callbac
         connect(m_serverUpdateTimer, &QTimer::timeout, this, &UserPlaybackTimerTracker::emitMetricsSignal);
         m_serverUpdateTimer->start(this->durationToSend * 1000); // Emit metrics signal every 60 seconds
     }catch(const std::exception& e){
-        qFatal()<<"what :" << e.what();
+        qWarning()<<"what :" << e.what();
     }
 }
 
@@ -41,20 +41,20 @@ void UserPlaybackTimerTracker::reset() {
 qint64 UserPlaybackTimerTracker::getTotalPlayTime() const {
     if (m_isRunning) {
         // Add elapsed time to accumulated time when running
-        qDebug()<<"play time "<<m_accumulatedTime + m_elapsedTimer.elapsed();
+        //qDebug()<<"play time "<<m_accumulatedTime + m_elapsedTimer.elapsed();
         return (m_accumulatedTime + m_elapsedTimer.elapsed()) / 1000; // Convert milliseconds to seconds
     } else {
         // Return accumulated time when paused
-        qDebug()<<"play time 2"<<m_accumulatedTime;
+        //qDebug()<<"play time 2"<<m_accumulatedTime;
         return m_accumulatedTime / 1000; // Convert milliseconds to seconds
     }
 }
 
 void UserPlaybackTimerTracker::updatePlayTime() {
-    qDebug()<<"starting the timer" ;
+    //qDebug()<<"starting the timer" ;
     if (m_mediaPlayer->playbackState() == PlaybackState::Playing) {
         m_accumulatedTime += 1000;
-        qWarning()<<"adding 1000" << m_accumulatedTime <<"final value";
+        //qWarning()<<"adding 1000" << m_accumulatedTime <<"final value";
     }
     emit playTimeUpdated(getTotalPlayTime());
 }
@@ -99,7 +99,7 @@ void UserPlaybackTimerTracker::emitMetricsSignal() {
         m_accumulatedTime = 0;
         m_elapsedTimer.restart(); // Restart the timer for the next period
     }catch(const std::exception& e){
-        qFatal()<< "what: "<<e.what();
+        qWarning()<< "what: "<<e.what();
     }
 }
 
@@ -108,5 +108,8 @@ void UserPlaybackTimerTracker::removeLastPendingItem() {
 }
 
 QList<qint64> UserPlaybackTimerTracker::getPendingItemList() {
+    if(this->m_pendingTimerSent.isEmpty()){
+        this->m_pendingTimerSent.append(0);
+    }
     return this->m_pendingTimerSent;
 }

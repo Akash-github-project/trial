@@ -12,7 +12,11 @@
 #include <string>
 #include <cstdlib>  // For rand() and srand()
 #include <ctime>    // For time()
+#include <QTimer>
 #include <QLabel>
+#include <QGraphicsOpacityEffect>
+#include <QPropertyAnimation>
+#include <QSequentialAnimationGroup>
 #include "playercontrollerwidget.h"
 #include "customgraphicstextitem.h"
 #define PRIMARY_WATERMARK_TEXT only_pain
@@ -74,9 +78,13 @@ public:
     QVector<QLabel*> textItems;
     QWidget *sceen;
     QString phoneNumber = nullptr;
+    QTimer *animationTimer;
+    QMap<QLabel*, QGraphicsOpacityEffect*> effects; // Store QLabel effects
     int numParts;
     int  numRows;
     int numCols;
+    int screenWidth = 0;
+    int screenHeight = 0;
 
 public:
     void updateWatermark(int sceenWidth,int sceenHeight);
@@ -92,6 +100,9 @@ public:
 
     QColor generateRandomColor();
 signals:
+private:
+    void animateLabel(QLabel *label);
+    void moveWm();
 };
 
 #endif // MIZUSHIRUSHIHANDORA_H

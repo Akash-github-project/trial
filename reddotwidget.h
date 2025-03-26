@@ -14,6 +14,7 @@ public:
 
 protected:
     void paintEvent(QPaintEvent *) override;
+    QWidget* parent = nullptr;
 
 
 private:

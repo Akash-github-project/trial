@@ -16,6 +16,11 @@ public:
     QLabel *recText;
     QVBoxLayout *layout;
     void setColor(QColor color);
+
+protected:
+    void paintEvent(QPaintEvent *event) {
+        this->setGeometry(this->parentWidget()->width() - 40,10,20,40);
+    }
 };
 
 #endif // RECWIDGET_H
