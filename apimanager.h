@@ -13,6 +13,7 @@
 #include <QJsonDocument>
 #include <QDebug>
 #include <QRegularExpression>
+#include <Stamp.h>
 
 #include "bsonobjectid.h"
 #include "sharekeygenerator.h"
@@ -38,11 +39,12 @@ private:
     QString token = "";
     QString deviceId = "";
 #ifdef PROD
-    QString url = "https://secure.vidsafe.in";
-    QString appVersion = "250302";
+    //QString url = "https://secure.vidsafe.in";
+    QString url = "https://msecure.vidsafe.in";
+    QString appVersion = "250401";
 #else
    QString url = "https://test-server.vidsafe.in";
-   QString appVersion = "250302";
+   QString appVersion = "250303";
 #endif
 public:
     BSONObjectID * bsonObjectGenerator;
@@ -67,6 +69,7 @@ public:
 private:
     QSslConfiguration getSslConfig();
     //QSslConfiguration getSslConfig(const QByteArray &pfxData, const QString &password);
+    QSslCertificate loadPinnedCertFromBase64();
 signals:
     void onKeyFetchFinished(QList<VideoData> list,MizuConfig * config,int duration);
     void noNetwork(QString message);

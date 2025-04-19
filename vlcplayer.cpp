@@ -114,7 +114,8 @@ VLCPlayer::VLCPlayer(QObject *parent)
 VLCPlayer::VLCPlayer(QObject *parent,VideoWidget* videoWidget)
     : QObject{parent}
 {
-    vlcInstance = libvlc_new(sizeof(vlc_args) / sizeof(vlc_args[0]), vlc_args);
+    //vlcInstance = libvlc_new(sizeof(vlc_args) / sizeof(vlc_args[0]), vlc_args);
+    vlcInstance = libvlc_new(0, NULL);
     if (!vlcInstance) { }
     videoData = new VlcVideoData();
     videoData->videoWidget = videoWidget;

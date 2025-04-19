@@ -140,6 +140,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         reddotwidget.h reddotwidget.cpp
         recwidget.h recwidget.cpp
         customgesturewidget.h customgesturewidget.cpp
+        Stamp.h
         # securememory.h securememory.cpp
 
 

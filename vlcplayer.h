@@ -70,6 +70,7 @@ private:
         "--avcodec-hw=dxva2",
         "--vout=d3d11",
         "--no-sub-autodetect-file"
+        "--quite",
     };
     int videoStatus;
     int timeOfVideo = 0;

@@ -90,25 +90,19 @@ QString ApiManager::getMotherboardSerialNumber() {
 // add ssl
 
 QSslConfiguration ApiManager::getSslConfig(){
-    //QString base64Pfx = "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";
-    QString base64Pfx = "";
-    // Replace with actual Base64 encoded certificate stringd
+    // test server
     // Decode the base64-encoded PFX data
-    //QString password = "#4546Vid";
-    QString password = "";
-    QByteArray pfxData = QByteArray::fromBase64(base64Pfx.toUtf8());
+    QByteArray password = QByteArray::fromBase64(QString::fromUtf8(prod_cert_pass).toUtf8());
+    QByteArray pfxData = QByteArray::fromBase64(QString::fromUtf8(prod_cert).toUtf8());
     QBuffer* newBuffer = new QBuffer();
 
 
     newBuffer->setData(pfxData);
-    //qDebug() << " setting data";
 
     // Open the buffer for reading
     if (!newBuffer->open(QIODevice::ReadOnly)) {
         qWarning() << "Failed to open buffer for reading";
     }
-
-
 
     // Variables to hold the extracted information
     QSslKey privateKey;
@@ -116,7 +110,7 @@ QSslConfiguration ApiManager::getSslConfig(){
     QList<QSslCertificate> caCertificates;
 
     // Import the PKCS#12 data
-    if (!QSslCertificate::importPkcs12(newBuffer, &privateKey, &certificate, &caCertificates, password.toUtf8())) {
+    if (!QSslCertificate::importPkcs12(newBuffer, &privateKey, &certificate, &caCertificates, password)) {
         qWarning() << "Failed to import PKCS#12 data.";
         return QSslConfiguration();
     }
@@ -133,7 +127,7 @@ QSslConfiguration ApiManager::getSslConfig(){
 }
 
 void ApiManager::GetKeysForChunk(QString testToken,QString courseId,QString videoId,QString courseItemId){
-     ;
+
     QNetworkRequest request(QUrl(url + "/api/generate-video-metadata/"));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
 
@@ -149,7 +143,7 @@ void ApiManager::GetKeysForChunk(QString testToken,QString courseId,QString vide
     request.setRawHeader("S","WC");
     request.setRawHeader("V",appVersion.toLatin1());
     request.setRawHeader("Accept","application/json; version=1.0");
-    //request.setSslConfiguration(getSslConfig());
+    request.setSslConfiguration(getSslConfig());
     //
     QJsonObject json;
     json["course_id"] = courseId;
@@ -187,7 +181,7 @@ void ApiManager::sendErrorInfo(QJsonDocument errorData,QString url){
         request.setRawHeader("V",appVersion.toLatin1());
         request.setRawHeader("Accept","application/json; version=1.0");
         //
-         //request.setSslConfiguration(getSslConfig());
+         request.setSslConfiguration(getSslConfig());
         QJsonObject json;
         json["mobile"] = this->credentials;
         json["description"] = errorMessage.at(0).toString();
@@ -207,6 +201,18 @@ void ApiManager::onSubmitUserInfo(QNetworkReply* reply){
     //qDebug()<<"in submitUserInfo";
     //qDebug()<<"in submitUserInfo data" << reply->url().toString();
     int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+
+    const QSslCertificate serverCert = reply->sslConfiguration().peerCertificate();
+
+    QSslCertificate pinnedCert = loadPinnedCertFromBase64();
+    if (serverCert == pinnedCert) {
+        reply->ignoreSslErrors();  // Accept if cert matches
+    } else {
+        //DailyLogger::instance().logger->info("Certificate mismatch. Aborting.") ;
+        qWarning()<<"Certificate mismatch. Aborting";
+        return;
+        // Do not call ignoreSslErrors() to block the request
+    }
 
     if(reply->url().toString().contains("api/record-error")){
         return;
@@ -308,11 +314,21 @@ void ApiManager::onFinished(QNetworkReply* reply) {
 
     int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
 
+    const QSslCertificate serverCert = reply->sslConfiguration().peerCertificate();
+
+    QSslCertificate pinnedCert = loadPinnedCertFromBase64();
+    if (serverCert == pinnedCert) {
+        reply->ignoreSslErrors();  // Accept if cert matches
+    } else {
+        //DailyLogger::instance().logger->info("Certificate mismatch. Aborting.") ;
+        qWarning()<<"Certificate mismatch. Aborting";
+        return;
+        // Do not call ignoreSslErrors() to block the request
+    }
+
     if(reply->url().toString().contains("api/record-error")){
         return;
     }
-
-
 
     if (reply->error() == QNetworkReply::NoError && reply->url().toString().contains("api/generate-video-metadata")) {
         QByteArray responseData = reply->readAll();
@@ -437,7 +453,7 @@ void ApiManager::sendUserWatchTime(QString token, QString courseId,QString cours
     request.setRawHeader("S","WC");
     request.setRawHeader("V",appVersion.toLatin1());
     request.setRawHeader("Accept","application/json; version=1.0");
-    //request.setSslConfiguration(getSslConfig());
+    request.setSslConfiguration(getSslConfig());
     QJsonObject jsonObject;
 
     // Assign values to the QJsonObject
@@ -509,7 +525,7 @@ void ApiManager::getSessionId(QString token, QString courseId,QString courseItem
     request.setRawHeader("S","WC");
     request.setRawHeader("V",appVersion.toLatin1());
     request.setRawHeader("Accept","application/json; version=1.0");
-    //request.setSslConfiguration(getSslConfig());
+    request.setSslConfiguration(getSslConfig());
     QJsonObject jsonObject;
 
     // Assign values to the QJsonObject
@@ -529,3 +545,16 @@ void ApiManager::getSessionId(QString token, QString courseId,QString courseItem
     userInfoLoggerManager->post(request, postData);
 }
 
+
+QSslCertificate ApiManager::loadPinnedCertFromBase64()
+{
+    // Decode the Base64 string into raw binary data
+    QByteArray certBytes =  QByteArray::fromBase64(QString::fromUtf8(public_pin_cert).toUtf8());
+    // Create a certificate from the decoded bytes
+    QSslCertificate cert(certBytes, QSsl::Der);  // Make sure you're using DER format
+    if (cert.isNull()) {
+        qWarning() << "Failed to load certificate from base64";
+    }
+
+    return cert;
+}
