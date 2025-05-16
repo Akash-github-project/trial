@@ -151,14 +151,6 @@ int main(int argc, char *argv[])
     const QString video_item_id = listOfArgs[5];
     const QString deviceId = listOfArgs[6];
 
-    // qDebug()<<"video_id " << listOfArgs[1];
-    // qDebug()<<"token " << listOfArgs[2];
-    // qDebug()<<"course_id " << listOfArgs[3];
-    // qDebug()<<"identifier " << listOfArgs[4];
-    // qDebug()<<"video_item_id " << listOfArgs[5];
-    // qDebug()<<"deviceId " << listOfArgs[6];
-
-
     QString filePath = QString::fromStdString(folderPath);
   #endif
 
@@ -173,7 +165,6 @@ int main(int argc, char *argv[])
      const QString identifier = "8709031440";
   #endif
 
-    //std::setenv("QT_MULTIMEDIA_PREFERRED_PLUGINS", "windowsmediafoundation", 1);
     qWarning()<<"starting the app";
     MainWindow w(filePath,token,course_id,video_id,video_item_id,identifier,deviceId,nullptr);
     w.show();
