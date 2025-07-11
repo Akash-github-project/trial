@@ -38,10 +38,11 @@ class ApiManager : public QObject {
 #ifdef PROD
   // QString url = "https://secure.vidsafe.in";
   QString url = "https://msecure.vidsafe.in";
-  QString appVersion = "250502";
+  QString appVersion = "250701";
 #else
+
   QString url = "https://test-server.vidsafe.in";
-  QString appVersion = "250502";
+  QString appVersion = "250602";
 #endif
  public:
   BSONObjectID *bsonObjectGenerator;

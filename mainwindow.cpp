@@ -146,9 +146,14 @@ void MainWindow::showWarningDialog() {
   auto allMonitors = getAllMonitorSizes();
   ScreenDetector detector = ScreenDetector();
   int monitorCount = detector.getMonitorInfoFromDeviceManager();
+  bool detectExternalDisplay = this->detectExternalDisplay;
+  qWarning() << "all monitors " << allMonitors.length();
+  qWarning() << "monitor count " << monitorCount;
+  //qWarning() << "monitor count " << monitorCount;
   try {
-    if ((allMonitors.length() > 1) ||
-        (monitorCount > 1) && warningDialog != nullptr) {
+    //
+    if (!( (allMonitors.length() == 1 && monitorCount == 1) || detectExternalDisplay == false  && warningDialog != nullptr)) {
+
       if (Player != nullptr && Player->isPlaying() && IS_FULL_SCREEN) {
         on_normal_button_pressed();
         onStopClicked();
@@ -157,7 +162,9 @@ void MainWindow::showWarningDialog() {
         blockedForPiracy = true;
       }
       warningDialog->show();
+      warningDialog->setTitle("Multiple Screen Detected");
     }
+    //
   } catch (const std::exception &e) {
     // Catch standard exceptions derived from std::exception
     qDebug() << "Standard exception caught:" << e.what();
@@ -1458,17 +1465,13 @@ void MainWindow::onKeyFetchCompleted(QList<VideoData> keyList,
           &MainWindow::sendTimeToServer);
 
   this->fullVideoDuration = fullVideoDuration * 1000;
+  this->detectExternalDisplay = config->detect_external_display;
   int monitorCount = detector.getMonitorInfoFromDeviceManager();
   QList<QPair<short, short>> allMonitors = getAllMonitorSizes();
   // qWarning() << "all monitors" << allMonitors.length();
   // qWarning() << "monitors Count" << monitorCount;
   // qWarning() << "detect_external_display" << config->detect_external_display;
-
-  if ((allMonitors.length() == 1 && monitorCount == 1) ||
-      (allMonitors.length() == 2 && monitorCount == 2 &&
-       config->detect_external_display == false) ||
-      (allMonitors.length() == 1 && monitorCount == 2 &&
-       config->detect_external_display == false)) {
+  if ((allMonitors.length() == 1 && monitorCount == 1) || ( config->detect_external_display == false)) {
     videoTimeArray = QList<qint64>();
     for (const VideoData &data : keyList) {
       videoTimeArray.append(data.duration.toInt() * 1000);

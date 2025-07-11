@@ -14,6 +14,7 @@ class WarningDialog : public QDialog
 public:
     explicit WarningDialog(QWidget *parent = nullptr);
     ~WarningDialog();
+    void setTitle(QString title);
 
 signals:
     void closed();

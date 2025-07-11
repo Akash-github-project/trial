@@ -14,6 +14,11 @@ WarningDialog::~WarningDialog()
     delete ui;
 }
 
+void WarningDialog::setTitle(QString title)
+{
+    ui->label_2->setText(title);
+}
+
 void WarningDialog::on_pushButton_clicked()
 {
     emit closed();

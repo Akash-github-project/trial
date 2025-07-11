@@ -6,15 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>963</width>
-    <height>618</height>
+    <width>1159</width>
+    <height>506</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">background-color: rgb(189, 41, 41);</string>
+   <string notr="true">background-color: rgb(170, 0, 0);</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -28,10 +28,22 @@
      <property name="maximumSize">
       <size>
        <width>16777215</width>
-       <height>170</height>
+       <height>140</height>
       </size>
      </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(170, 0, 0);</string>
+     </property>
      <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item>
        <widget class="QLabel" name="label_6">
         <property name="text">
@@ -50,10 +62,13 @@
         <property name="maximumSize">
          <size>
           <width>176773</width>
-          <height>150</height>
+          <height>8738492</height>
          </size>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout_2">
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
          <item alignment="Qt::AlignHCenter">
           <widget class="QLabel" name="label">
            <property name="minimumSize">
@@ -151,11 +166,15 @@ QPushButton {
       </font>
      </property>
      <property name="styleSheet">
-      <string notr="true">margin:30px;
-color: rgb(255, 255, 255);</string>
+      <string notr="true">color: rgb(255, 255, 255);
+margin-left:30px;
+margin-right:30px;</string>
+     </property>
+     <property name="lineWidth">
+      <number>2</number>
      </property>
      <property name="text">
-      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;It appears that you are attempting an action that violates our security policies.&lt;br/&gt;&lt;br/&gt;Your activity has been detected and logged. To protect the integrity of our educational content, actions such as screen &lt;br/&gt; recording, screen sharing, or any other form of unauthorized content capture are strictly prohibited.&lt;br/&gt;&lt;br/&gt;Please understand that any sucn activities in the may lead to an FIR and can permanently affect your career.&lt;br/&gt;Please adhere to the following guidelines: &lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Do not attempt to record or share the screen during playback of educational content &lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Ensure that your device is secure and free from any software that could interfere with our security measures &lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Failure to comply with these guidelines may result in restricted access or termination of your account.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;It appears that you are attempting an action that violates our security policies.&lt;br/&gt;&lt;br/&gt;Your activity has been detected and logged. To protect the integrity of our educational content, actions such as screen &lt;br/&gt;recording, screen sharing, or any other form of unauthorized content capture are strictly prohibited.&lt;br/&gt;&lt;br/&gt;Please understand that any such activities in the may lead to an FIR and can permanently affect your career.&lt;br/&gt;Please adhere to the following guidelines: &lt;/p&gt;&lt;ul style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Do not attempt to record or share the screen during playback of educational content &lt;/li&gt;&lt;li style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Ensure that your device is secure and free from any software that could interfere with our security measures &lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Failure to comply with these guidelines may result in restricted access or termination of your account.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
    </item>
