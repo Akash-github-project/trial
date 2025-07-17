@@ -45,6 +45,7 @@
 #include <QScreen>
 #include <QStackedLayout>
 #include <QUiLoader>
+#include <VideoContainer.h>
 
 #include "customgesturewidget.h"
 // platform specific
@@ -56,6 +57,7 @@
 #include <windows.h>
 
 #include <memory>
+#include <QtConcurrent>
 // #include <SecureMemory.h>
 
 #define NAME_SIZE 128
@@ -78,41 +80,6 @@ class MainWindow : public QMainWindow {
   Q_OBJECT
 
  public:
-  // MainWindow(QWidget *parent = nullptr);
-  MainWindow(QString filePath, QString token, QString course_id,
-             QString video_id, QString video_item_id, QString identifier,
-             QString deviceId, QWidget *parent = nullptr);
-  ~MainWindow();
-  // void makeButtonRound(QPushButton* button);
-  struct MonitorInfo {
-    std::string deviceName;
-    DEVMODE devMode;
-  };
-  void resizeEvent(QResizeEvent *event);
-  void slderClicked(int action);
-  void setupFullScreenControls();
-  void onPlaybackRateChanged(float playbackRate);
-  int getVideoIndexToJump(int timeInSeconds);
-  void onlyUpdatePlaybackTimeText(QString playbackDurationString);
-  void keyPressEvent(QKeyEvent *event) override;
-  void closeNoInternetDialogAndRetry(bool closeWindow);
-  void changeVolumeIconToMute();
-  void changeVolumeIconToLowFromMute();
-
- public:
-  const GUID GUID_CLASS_MONITOR = {0x4d36e96e, 0xe325, 0x11ce, 0xbf, 0xc1, 0x08,
-                                   0x00,       0x2b,   0xe1,   0x03, 0x18};
-  // PlayerControllerWidget *scene;
-  MizuShirushiHandora *watermarkHandler = nullptr;
-  // QMediaPlayer *Player;
-  VLCPlayer *Player;
-  // Create a QGraphicsScene
-  // CustomGraphicsView *view = nullptr;
-  // QGraphicsVideoItem *videoItem = nullptr;
-  PlaybackRateHandler *playbackRateHandler;
-  WarningDialog *warningDialog;
-  UserPlaybackTimerTracker *playbackTimer = nullptr;
-  VideoWidget *widgetVideo;
 
  public:
   const int timeLimit = 120;
@@ -129,6 +96,37 @@ class MainWindow : public QMainWindow {
   void enumerateDisplays();
   bool userAction = false;
 
+  public:
+  const GUID GUID_CLASS_MONITOR = {0x4d36e96e, 0xe325, 0x11ce, 0xbf, 0xc1, 0x08,
+                                   0x00,       0x2b,   0xe1,   0x03, 0x18};
+  MizuShirushiHandora *watermarkHandler = nullptr;
+  VLCPlayer *Player;
+  PlaybackRateHandler *playbackRateHandler;
+  WarningDialog *warningDialog;
+  UserPlaybackTimerTracker *playbackTimer = nullptr;
+  VideoWidget *widgetVideo;
+
+  public:
+  // MainWindow(QWidget *parent = nullptr);
+  MainWindow(QString filePath, QString token, QString course_id,
+             QString video_id, QString video_item_id, QString identifier,
+             QString deviceId, QWidget *parent = nullptr);
+  ~MainWindow();
+  // void makeButtonRound(QPushButton* button);
+  struct MonitorInfo {
+    std::string deviceName;
+    DEVMODE devMode;
+  };
+  void resizeEvent(QResizeEvent *event) override;
+  void slderClicked(int action);
+  void setupFullScreenControls();
+  void onPlaybackRateChanged(float playbackRate);
+  int getVideoIndexToJump(int timeInSeconds);
+  void onlyUpdatePlaybackTimeText(QString playbackDurationString);
+  void closeNoInternetDialogAndRetry(bool closeWindow);
+  void changeVolumeIconToMute();
+  void changeVolumeIconToLowFromMute();
+
   bool GetSizeForDevID(short &WidthMm, short &HeightMm);
   bool GetMonitorSizeFromEDID(const HKEY hDevRegKey, short &WidthMm,
                               short &HeightMm);
@@ -136,8 +134,6 @@ class MainWindow : public QMainWindow {
   int getSumOfAllVideosTimeTillNow(int index);
   void caliberateVideo();
 
- private:
-  // SecureMemory * mem = nullptr;
  public slots:
   void onStopClicked();
   void userPlaytimeDataFailed(QString message);
@@ -186,14 +182,12 @@ class MainWindow : public QMainWindow {
   int extraSeekValue = -1;
   int currentIndex = 0;
 
+  private:
   Ui::MainWindow *ui;
   ApiManager *manager;
   QList<VideoData> videoItemList;
   QGuiApplication *guiInstance;
   QCoreApplication *guiApp;
-  // QVideoWidget *Video = nullptr;
-  // QGraphicsWidget *GraphicsWidget = nullptr;
-  // FullScreenViews  *fullScreenViews = nullptr;
   SeekbarProgressController *seekbarNewController;
   // Create a QGraphicsVideoItem
   QList<qint64> videoTimeArray;
@@ -216,12 +210,8 @@ class MainWindow : public QMainWindow {
   QWidget *watermarkFlash;
   QWidget *watermarkDot;
   FullScreenControlsWidget *controlsWrapper;
-  // QString videoFileChunkPattern = "encrypted*.mp4";
-  // qint64 sliderTime = -1;
   VideoProgressBarController *seekbarController = nullptr;
   EncryptionHandler *handler = nullptr;
-  // QGraphicsTextItem *WATERMARK_TEXT = nullptr;
-  // QGraphicsTextItem *WATERMARK_TEXT1 = nullptr;
 
   RedDotRecording *RECORDING_RED_DOT = nullptr;
   ScreenFlashLayer *RECORDING_FLASH_LAYER = nullptr;
@@ -251,6 +241,8 @@ class MainWindow : public QMainWindow {
   NoInternetDialog *noIntentDialog = nullptr;
   NoInternetDialog *noIntentDialogForTimer = nullptr;
   CustomGestureWidget *wMarkScreen;
+  std::optional<VideoContainer> videoContainer;
+
   QString pauseButtonStyle =
       "QPushButton {"
       "    border: none;"
@@ -297,16 +289,20 @@ class MainWindow : public QMainWindow {
   void setupKeyboardShortcuts();
   void handleUserManualMaximized();
   void handleUserManualUnMaximize();
-  void handleArrowKey(int key);
+  void handleKeyBindings(int key);
   void disableScreenRecording();
   void showWarningDialog();
   int getExtraSeek(int timeInSeconds, int indexToJump);
+  //TODO: Add string name validation suppport
+  void preloadVideo(int index);
+
   bool eventFilter(QObject *watched, QEvent *event) override {
     if (event->type() == QEvent::KeyPress) {
       QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
       if (keyEvent->key() == Qt::Key_Left || keyEvent->key() == Qt::Key_Right ||
-          keyEvent->key() == Qt::Key_Up || keyEvent->key() == Qt::Key_Down) {
-        handleArrowKey(keyEvent->key());
+          keyEvent->key() == Qt::Key_Up || keyEvent->key() == Qt::Key_Down ||
+          keyEvent->key() == Qt::Key_Space || keyEvent->key() == Qt::Key_Escape ) {
+        handleKeyBindings(keyEvent->key());
         return true;
       }
     }

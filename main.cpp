@@ -69,15 +69,15 @@ void customMessageHandler(QtMsgType type, const QMessageLogContext& context,
     case QtCriticalMsg:
       out << "CRITICAL: " << msg << Qt::endl;
       break;
-  }
+ }
 #endif
-//#ifndef LOCAL
+#ifndef LOCAL
   case QtWarningMsg:
     out << "LOG: ";
     out << msg << Qt::endl;
     break;
 }
-//#endif
+#endif
 }
 
 QString accessNamedPipes() {

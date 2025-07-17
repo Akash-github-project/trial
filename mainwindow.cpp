@@ -17,6 +17,7 @@ MainWindow::MainWindow(QString filePath, QString token, QString course_id,
   ui->setupUi(this);
   guiApp = QGuiApplication::instance();
   guiInstance = qobject_cast<QGuiApplication *>(guiApp);
+  guiInstance->installEventFilter(this);
   setWindowTitle("Video Player");
   QObject::connect(warningDialog, &WarningDialog::closed, this, [this]() {
     this->warningDialog->close();
@@ -192,35 +193,70 @@ void MainWindow::disableScreenRecording() {
 }
 
 void MainWindow::setupKeyboardShortcuts() {
-  connect(RECORDING_FLASH_LAYER, &ScreenFlashLayer::doubleClickedScreen, this,
-          &MainWindow::on_pushButton_full_screen_clicked);
-  QShortcut *playPauseShortcut =
-      new QShortcut(QKeySequence(Qt::Key_Space), this);
-  connect(playPauseShortcut, &QShortcut::activated, this,
-          &MainWindow::on_pushButton_Play_Pause_clicked);
-  QShortcut *normalWindowShortcut =
-      new QShortcut(QKeySequence(Qt::Key_Escape), this);
-  connect(normalWindowShortcut, &QShortcut::activated, this,
-          &MainWindow::on_normal_button_pressed);
+  // connect(RECORDING_FLASH_LAYER, &ScreenFlashLayer::doubleClickedScreen, this,
+  //         &MainWindow::on_pushButton_full_screen_clicked);
+  // QShortcut *playPauseShortcut =
+  //     new QShortcut(QKeySequence(Qt::Key_Space), this);
+  // connect(playPauseShortcut, &QShortcut::activated, this,
+  //         &MainWindow::on_pushButton_Play_Pause_clicked);
+  // QShortcut *normalWindowShortcut =
+  //     new QShortcut(QKeySequence(Qt::Key_Escape), this);
+  // connect(normalWindowShortcut, &QShortcut::activated, this,
+  //         &MainWindow::on_normal_button_pressed);
 }
 
-void MainWindow::handleWindowModesTransitions(bool isFullScreen) {
-  // qDebug()<<"full screen";
-  // setupFullScreenControls();
-}
+void MainWindow::handleWindowModesTransitions(bool isFullScreen) { }
 
-void MainWindow::keyPressEvent(QKeyEvent *event) {
-  if (event->key() == Qt::Key_Space) {
-    on_pushButton_Play_Pause_clicked();
-  }
-  if (event->key() == Qt::Key_Escape && IS_FULL_SCREEN) {
-    // Handle Esc key press here
-    // Example: Close fullscreen, exit modal, or perform other actions
-    on_normal_button_pressed();  // Exit fullscreen if the window is in
-                                 // fullscreen mode
-  } else {
-    // Pass the event to the base class for default processing
-    QMainWindow::keyPressEvent(event);
+void MainWindow::handleKeyBindings(int key) {
+  switch (key) {
+    case Qt::Key_Left:
+      on_pushButton_Seek_Backward_clicked();
+      break;
+    case Qt::Key_Right:
+      on_pushButton_Seek_Forward_clicked();
+      break;
+    case  Qt::Key_Space:
+      on_pushButton_Play_Pause_clicked();
+      break;
+    case Qt::Key_Up: {
+        int volume = Player->getVolume();
+        if(volume <= 90){
+            volume += 10;
+        } else {
+            volume = 100;
+        }
+
+        if(IS_FULL_SCREEN){
+            fsSeekbarVolume->setSliderPosition(volume);
+        } else {
+            ui->horizontalSlider_Volume->setSliderPosition(volume);
+        }
+      break;
+    }
+    case Qt::Key_Down: {
+        int volume = Player->getVolume();
+        if(volume >= 10){
+            volume -= 10;
+        } else {
+            volume = 0;
+        }
+
+        if(IS_FULL_SCREEN){
+            fsSeekbarVolume->setSliderPosition(volume);
+        } else {
+            ui->horizontalSlider_Volume->setSliderPosition(volume);
+        }
+      break;
+    }
+
+    case Qt::Key_Escape:
+      if(IS_FULL_SCREEN){
+            on_normal_button_pressed();  // Exit fullscreen if the window is in
+      }
+      break;
+
+    default:
+      break;
   }
 }
 
@@ -247,7 +283,6 @@ void MainWindow::slderClicked(int action) {
 
 void MainWindow::handleVolumeChange(int volume) {
   Player->setVolume(volume);
-  // Player->audioOutput()->setVolume(volume / 100.0f);
 }
 
 void MainWindow::onPlaybackRateChanged(float playbackRate) {
@@ -431,6 +466,7 @@ void MainWindow::on_actionOpen_triggered(MizuConfig *config) {
   // scene = new PlayerControllerWidget();
   // view = new CustomGraphicsView();
   // // scene->addWidget(widgetVideo);
+
 
   // view->installEventFilter(this);
   // view->setScene(scene);
@@ -787,18 +823,23 @@ void MainWindow::loadVideo(PlaybackState status) {
     return;
   }
 
-  QDir directory(selectedDirectory);
-  QStringList filesToPlay = getFileList(selectedDirectory);
-  QFile file(directory.filePath(filesToPlay[currentIndex]));
-  if (!file.open(QIODevice::ReadOnly)) {
-    //        qDebug() << "Failed to open file for reading:" <<
-    //        file.errorString();
-    return;  // or handle the error in some way
+
+  if(videoContainer.has_value() && videoContainer.value().index == currentIndex && !videoContainer.value().data.isEmpty()){
+      qDebug()<<"opening from here!";
+      openParticularChunk(videoContainer.value().data, videoContainer.value().index);
+  } else {
+      qDebug()<<"opening not from here!";
+     QDir directory(selectedDirectory);
+     QStringList filesToPlay = getFileList(selectedDirectory);
+     QFile file(directory.filePath(filesToPlay[currentIndex]));
+     if (!file.open(QIODevice::ReadOnly)) {
+       return;  // or handle the error in some way
+     }
+     //    qDebug()<<"current index to play" << currentIndex;
+     QByteArray videoArray = file.readAll();
+     file.close();  // Close the file after reading
+     openParticularChunk(videoArray, currentIndex);
   }
-  //    qDebug()<<"current index to play" << currentIndex;
-  QByteArray videoArray = file.readAll();
-  file.close();  // Close the file after reading
-  openParticularChunk(videoArray, currentIndex);
   seekbarNewController->resume();
   // Player->play();
 }
@@ -879,6 +920,42 @@ int MainWindow::getExtraSeek(int timeInSeconds, int indexToJump) {
   return 0;
 }
 
+void MainWindow::preloadVideo(int index)
+{
+    // Capture required variables by value
+    const QString selectedDir = selectedDirectory;
+    const QStringList filesToPlay = getFileList(selectedDir);
+    const int current = index;
+    const QString filePath = QDir(selectedDir).filePath(filesToPlay[current]);
+    const auto item = videoItemList[current]; // assuming videoItemList is accessible here
+
+    QFuture<void> ret = QtConcurrent::run([=]() {
+        QFile file(filePath);
+        if (!file.open(QIODevice::ReadOnly)) {
+            qWarning() << "Failed to open file:" << filePath;
+            return;
+        }
+
+        QByteArray videoArray = file.readAll();
+        file.close();
+
+        // Decrypt in background
+        // QByteArray decryptedData = ;
+        // qWarning()<<"decrypted data lenght " << decryptedData.length();
+        // Prepare VideoContainer (assume it's not a pointer now)
+        VideoContainer vc;
+        vc.data = handler->decryptFile(videoArray, item);
+        vc.index = current;
+        vc.fileName = filePath;
+
+        // Push back to main thread
+        QMetaObject::invokeMethod(this, [=]() {
+                videoContainer = vc; // Assign on main thread
+                qDebug() << "Preloaded video at index:" << current;
+            }, Qt::QueuedConnection);
+    });
+}
+
 int MainWindow::getVideoIndexToJump(int timeInSeconds) {
   int difference = 1000 * timeInSeconds;
   int indexToReturn = 0;
@@ -940,9 +1017,15 @@ void MainWindow::loadParticalarChunk(int videoIndex, int extraSeek) {
       seekbarController->markSeekPending(true);
     }
 
-    QByteArray videoArray = file.readAll();
-    file.close();  // Close the file after reading
-    openParticularChunk(videoArray, videoIndex);
+    if(videoContainer.has_value() && videoContainer.value().index == currentIndex && !videoContainer.value().data.isEmpty()){
+      file.close();
+      openParticularChunk(videoContainer.value().data, currentIndex);
+    } else {
+      QByteArray videoArray = file.readAll();
+      file.close();  // Close the file after reading
+      openParticularChunk(videoArray, videoIndex);
+    }
+
     if (IS_FULL_SCREEN) {
       fsSeekbarController->setupSeekTimer(this,
                                           fsSeekbarController->getValue());
@@ -963,7 +1046,21 @@ void MainWindow::openParticularChunk(QByteArray byteData, int videoIndex) {
   // qDebug() << "vid index" << videoIndex;
   // qDebug() << "byte data" << byteData.length();
 
-  newBuffer->setData(handler->decryptFile(byteData, videoItemList[videoIndex]));
+  qDebug()<<"video index" << videoIndex;
+  qDebug()<<"video lenght" << videoItemList.length() - 2;
+  if (videoIndex <= videoItemList.length() - 2){
+      qDebug()<<"starting preload";
+      preloadVideo(videoIndex + 1);
+      qDebug()<<"passed preload";
+  }
+
+  QString cotainerStatus = videoContainer.has_value()  ? "true": "false";
+  qDebug()<<"video container has value " << cotainerStatus;
+  if(videoContainer.has_value() && videoContainer->index == videoIndex){
+    newBuffer->setData(byteData);
+  } else {
+    newBuffer->setData(handler->decryptFile(byteData, videoItemList[videoIndex]));
+  }
   // qDebug() << " setting data";
 
   // Open the buffer for reading
@@ -1328,18 +1425,6 @@ void MainWindow::handleUserManualUnMaximize() {
                                     ui->video_section->height());
 }
 
-void MainWindow::handleArrowKey(int key) {
-  switch (key) {
-    case Qt::Key_Left:
-      on_pushButton_Seek_Backward_clicked();
-      break;
-    case Qt::Key_Right:
-      on_pushButton_Seek_Forward_clicked();
-      break;
-    default:
-      break;
-  }
-}
 
 bool MainWindow::event(QEvent *event) {
   const bool ret_val = QMainWindow::event(event);

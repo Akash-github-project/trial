@@ -101,6 +101,7 @@ public:
     void setMediaSource(QBuffer* videoBuffer); // done
     void changeSpeed(float speed);
     bool isMuted(); //done
+    int getVolume();
     void setMuted(bool mute); //done
     float position(); // done
     int duration(); // done
@@ -111,7 +112,6 @@ public:
     void movePointerToPosition(int position);
     ~VLCPlayer();
     PlayPauseState playPauseState();
-
 private slots:
     void onPlaybackTimerTickOnVisibleSecond();
 

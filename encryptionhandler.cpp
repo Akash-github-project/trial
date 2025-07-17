@@ -63,7 +63,7 @@ bool EncryptionHandler::writeByteArrayToFile(const QByteArray data, const QStrin
 
 
 QByteArray EncryptionHandler::decryptFile(QByteArray byteArray,VideoData vidItem) {
-
+    qDebug()<<"entering dec block";
     std::vector<CryptoPP::byte> listOfKeys = hexStringToByteArray(vidItem.key.toStdString());
     std::vector<CryptoPP::byte> listOfIv = hexStringToByteArray(vidItem.iv.toStdString());
     CryptoPP::byte key[32] = {};
@@ -86,6 +86,7 @@ QByteArray EncryptionHandler::decryptFile(QByteArray byteArray,VideoData vidItem
     //writeByteArrayToFile(*data,vidItem.fileName);
     ///
 
+    qDebug()<<"exiting dec block";
     return *data;
 }
 

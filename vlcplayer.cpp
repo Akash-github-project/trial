@@ -138,7 +138,6 @@ VLCPlayer::VLCPlayer(QObject *parent,VideoWidget* videoWidget)
     // VLCPlayer.cpp (Within VLCPlayer constructor)
     libvlc_video_set_format(mediaPlayer, "RV32", videoData->frame.width(), videoData->frame.height(), videoData->frame.bytesPerLine());
     libvlc_video_set_callbacks(mediaPlayer, lock_callback, unlock_callback, display_callback, videoData);
-
 }
 
 
@@ -207,6 +206,8 @@ libvlc_media_t* VLCPlayer::create_media_from_buffer(libvlc_instance_t* vlcInstan
         delete context;
         return nullptr;
     }
+
+    libvlc_media_add_option(media, ":file-caching=3000");  // buffer 3 seconds of data
     return media;
 }
 
@@ -328,6 +329,11 @@ bool VLCPlayer::isPlaying()
 {
     PlayPauseState playingOrNot = playPauseState();
     return playingOrNot == PlayPauseState::Play;
+}
+
+int VLCPlayer::getVolume(){
+    CHECK_MEDIAPLAYER_INITIALIZED(mediaPlayer);
+    return libvlc_audio_get_volume(mediaPlayer);
 }
 
 void VLCPlayer::setVolume(int volume)

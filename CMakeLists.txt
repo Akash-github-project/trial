@@ -24,6 +24,7 @@ find_package(Qt6 REQUIRED COMPONENTS MultimediaWidgets)
 find_package(Qt6 REQUIRED COMPONENTS UiTools )
 find_package(Qt6 REQUIRED COMPONENTS Network )
 find_package(Qt6 REQUIRED COMPONENTS Quick )
+find_package(Qt6 REQUIRED COMPONENTS Concurrent )
 
 
 add_library(cryptopp STATIC IMPORTED)
@@ -141,6 +142,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         recwidget.h recwidget.cpp
         customgesturewidget.h customgesturewidget.cpp
         Stamp.h
+        VideoContainer.h
         # securememory.h securememory.cpp
 
 
@@ -173,6 +175,7 @@ target_link_libraries(VidSafePlayer PRIVATE Qt${QT_VERSION_MAJOR}::MultimediaWid
 target_link_libraries(VidSafePlayer PRIVATE Qt${QT_VERSION_MAJOR}::Network)
 target_link_libraries(VidSafePlayer PRIVATE Qt${QT_VERSION_MAJOR}::UiTools)
 target_link_libraries(VidSafePlayer PRIVATE Qt${QT_VERSION_MAJOR}::Quick)
+target_link_libraries(VidSafePlayer PRIVATE Qt${QT_VERSION_MAJOR}::Concurrent)
 target_link_libraries(VidSafePlayer PRIVATE cryptopp)
 target_link_libraries(VidSafePlayer PRIVATE openssl)
 target_link_libraries(VidSafePlayer PRIVATE crypto)
