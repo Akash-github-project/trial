@@ -237,11 +237,13 @@ class MainWindow : public QMainWindow {
   QMetaObject::Connection fsSeekbarConnection;
   QMetaObject::Connection fsSeekbarForwardBackwardConnection;
   QWidget *controls;
+  QBuffer* newBuffer = nullptr;
   WindowEventHandler *fullScreenEventHandler;
   NoInternetDialog *noIntentDialog = nullptr;
   NoInternetDialog *noIntentDialogForTimer = nullptr;
   CustomGestureWidget *wMarkScreen;
   std::optional<VideoContainer> videoContainer;
+
 
   QString pauseButtonStyle =
       "QPushButton {"

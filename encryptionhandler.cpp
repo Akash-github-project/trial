@@ -80,14 +80,14 @@ QByteArray EncryptionHandler::decryptFile(QByteArray byteArray,VideoData vidItem
     SecByteBlock ivBlock(iv,sizeof(iv));
     std::vector<byte> decryptedData = DecryptVideoFromQByteArray(byteArray, keyBlock,ivBlock);
     // wite this data to file
-    QByteArray* data = VectorToQByteArray( decryptedData );
+    QByteArray data = VectorToQByteArray( decryptedData );
     // qDebug()<<"writing file";
     /////
     //writeByteArrayToFile(*data,vidItem.fileName);
     ///
 
     qDebug()<<"exiting dec block";
-    return *data;
+    return data;
 }
 
 // Function to convert a hex string to an unsigned char array
@@ -153,14 +153,14 @@ QByteArray EncryptionHandler::decryptString(QByteArray byteArray,QString encIv, 
     SecByteBlock ivBlock(iv,sizeof(iv));
     std::vector<byte> decryptedData = DecryptTextToMemory(byteArray, keyBlock,ivBlock);
     // wite this data to file
-    QByteArray* data = VectorToQByteArray( decryptedData );
-    qDebug()<<"final final " << data->toBase64();
+    QByteArray data = VectorToQByteArray( decryptedData );
+    // qDebug()<<"final final " << data->toBase64();
     // qDebug()<<"writing file";
     /////
     //writeByteArrayToFile(*data,vidItem.fileName);
     ///
 
-    return *data;
+    return data;
 }
 
 

@@ -1042,7 +1042,9 @@ void MainWindow::openParticularChunk(QByteArray byteData, int videoIndex) {
   // Create a new buffer and set its data
   qDebug() << "-------------------------";
   qDebug() << "openParticularChunk called";
-  QBuffer *newBuffer = new QBuffer();
+  delete newBuffer;
+  newBuffer  = nullptr;
+  newBuffer = new QBuffer();
   // qDebug() << "vid index" << videoIndex;
   // qDebug() << "byte data" << byteData.length();
 
@@ -1431,6 +1433,7 @@ bool MainWindow::event(QEvent *event) {
 
   if (!this->videoStarted && event->type() == QEvent::Paint) {
     this->videoStarted = true;
+    this->manager->getSessionId(token, course_id, video_item_id, video_id);
     this->manager->GetKeysForChunk(this->token, this->course_id, this->video_id,
                                    this->video_item_id);
   }
@@ -1570,7 +1573,7 @@ void MainWindow::onKeyFetchCompleted(QList<VideoData> keyList,
                   1;
     // durationAverageInSeconds = ;
     on_actionOpen_triggered(config);
-    manager->getSessionId(token, course_id, video_item_id, video_id);
+    //manager->getSessionId(token, course_id, video_item_id, video_id);
 
     // qDebug()<<videoTimeArray << "video time array -- duration";
   } else {
@@ -1692,7 +1695,10 @@ void MainWindow::on_comboBox_currentTextChanged(const QString &arg1) {
   } else if (arg1 == "1.2x") {
     requiredSpeed = 1.2f;
 
-  } else if (arg1 == "1.5x") {
+  } else if(arg1 == "1.25x"){
+    requiredSpeed = 1.25f;
+  }
+  else if (arg1 == "1.5x") {
     requiredSpeed = 1.5f;
 
   } else if (arg1 == "1.75x") {

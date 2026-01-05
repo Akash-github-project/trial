@@ -157,12 +157,13 @@ void ApiManager::GetKeysForChunk(QString testToken, QString courseId,
   QJsonObject json;
   json["course_id"] = courseId;
   json["p"] = QString::fromStdString(clientPublicKey.toHex().toStdString());
-  // qDebug()<<"debug:: " << courseId;
+   qDebug()<<"debug:: couseId" << courseId;
   json["video_id"] = videoId;
   json["course_item_id"] = courseItemId;
-  // qDebug()<<"debug:: " << videoId;
+  qDebug()<<"debug:: videoId" << videoId;
   QJsonDocument jsonDoc(json);
 
+  qDebug()<<jsonDoc.toJson();
   // Convert QJsonDocument to QByteArray
   QByteArray postData = jsonDoc.toJson();
 
@@ -205,6 +206,19 @@ void ApiManager::sendErrorInfo(QJsonDocument errorData, QString url) {
   }
 }
 
+QByteArray ApiManager::getPublicKeySha256(const QSslCertificate &cert)
+{
+    // Extract the public key in DER (ASN.1) format
+    QSslKey pubKey = cert.publicKey();
+    QByteArray spki = pubKey.toDer();  // DER = SubjectPublicKeyInfo structure
+
+    // Hash using SHA-256
+    QByteArray hash = QCryptographicHash::hash(spki, QCryptographicHash::Sha256);
+
+    return hash;
+}
+
+
 void ApiManager::onSubmitUserInfo(QNetworkReply* reply) {
   // qDebug()<<"in submitUserInfo";
   // qDebug()<<"in submitUserInfo data" << reply->url().toString();
@@ -214,12 +228,17 @@ void ApiManager::onSubmitUserInfo(QNetworkReply* reply) {
   const QSslCertificate serverCert =
       reply->sslConfiguration().peerCertificate();
 
-  QSslCertificate pinnedCert = loadPinnedCertFromBase64();
-  if (serverCert == pinnedCert) {
+
+
+ QString pinnedCert = loadPinnedCertFromBase64();
+
+  qDebug()<<"server hex" << getPublicKeySha256(serverCert).toHex();
+  if (getPublicKeySha256(serverCert).toHex() == pinnedCert) {
     reply->ignoreSslErrors();  // Accept if cert matches
   } else {
     // DailyLogger::instance().logger->info("Certificate mismatch. Aborting.") ;
     qWarning() << "Certificate mismatch. Aborting";
+    emit noNetworkForTimer("No Internet connection.");
     return;
     // Do not call ignoreSslErrors() to block the request
   }
@@ -234,9 +253,8 @@ void ApiManager::onSubmitUserInfo(QNetworkReply* reply) {
     QJsonDocument document = QJsonDocument::fromJson(response, nullptr);
     qDebug() << "time send response" << document.object();
     this->requestId = "";
-    if (document.object().contains("session_id")) {
+    if (document.object().contains("session_id")  && document.object().value("session_id").toString() != "") {
       sessionId = document.object().value("session_id").toString();
-      // qDebug()<<"session id" << sessionId;
       return;
     }
     emit onUserTimeSentSuccess();
@@ -333,8 +351,9 @@ void ApiManager::onFinished(QNetworkReply* reply) {
   const QSslCertificate serverCert =
       reply->sslConfiguration().peerCertificate();
 
-  QSslCertificate pinnedCert = loadPinnedCertFromBase64();
-  if (serverCert == pinnedCert) {
+  QString pinnedCert = loadPinnedCertFromBase64();
+  qDebug()<< "server hex " <<  getPublicKeySha256(serverCert).toHex();
+  if (getPublicKeySha256(serverCert).toHex() == pinnedCert) {
     reply->ignoreSslErrors();  // Accept if cert matches
   } else {
     // DailyLogger::instance().logger->info("Certificate mismatch. Aborting.") ;
@@ -488,7 +507,6 @@ void ApiManager::sendUserWatchTime(QString token, QString courseId,
   request.setRawHeader("Accept", "application/json; version=1.0");
   request.setSslConfiguration(getSslConfig());
   QJsonObject jsonObject;
-
   // Assign values to the QJsonObject
   jsonObject["activity_type"] = "VIDEO_WATCH";
   jsonObject["course_id"] = courseId;
@@ -583,16 +601,22 @@ void ApiManager::getSessionId(QString token, QString courseId,
   userInfoLoggerManager->post(request, postData);
 }
 
-QSslCertificate ApiManager::loadPinnedCertFromBase64() {
+QString ApiManager::loadPinnedCertFromBase64() {
   // Decode the Base64 string into raw binary data
-  QByteArray certBytes =
-      QByteArray::fromBase64(QString::fromUtf8(public_pin_cert).toUtf8());
-  // Create a certificate from the decoded bytes
-  QSslCertificate cert(certBytes,
-                       QSsl::Der);  // Make sure you're using DER format
-  if (cert.isNull()) {
-    qWarning() << "Failed to load certificate from base64";
-  }
+  // QByteArray certBytes =
+  //     QByteArray::fromBase64(QString::fromUtf8(public_pin_cert).toUtf8());
+  // // Create a certificate from the decoded bytes
+  // QSslCertificate cert(certBytes,
+  //                      QSsl::Der);  // Make sure you're using DER format
+  // if (cert.isNull()) {
+  //   qWarning() << "Failed to load certificate from base64";
+  // }
+  // return cert;
 
-  return cert;
+    QByteArray hash  = QByteArray::fromRawData(reinterpret_cast<const char*>(public_pin_cert_hash),sizeof(public_pin_cert_hash));
+    QString hex = hash.toHex();
+
+   qDebug()<<hex << " this is hex";
+
+  return hex;
 }

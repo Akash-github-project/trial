@@ -15,6 +15,8 @@
 #include "onboardingwrapper.h"
 
 // #define LOCAL ;
+//#define ENABLE_LOG
+//#define USE_LOCAL_DATA
 
 namespace fs = std::filesystem;
 bool isValidPath(const std::string& path) {
@@ -56,7 +58,7 @@ void customMessageHandler(QtMsgType type, const QMessageLogContext& context,
       << " ";
 
   switch (type) {
-#ifdef LOCAL
+#ifdef ENABLE_LOG
     case QtDebugMsg:
       out << "DEBUG: " << msg << Qt::endl;
       break;
@@ -71,7 +73,7 @@ void customMessageHandler(QtMsgType type, const QMessageLogContext& context,
       break;
  }
 #endif
-#ifndef LOCAL
+#ifndef ENABLE_LOG
   case QtWarningMsg:
     out << "LOG: ";
     out << msg << Qt::endl;
@@ -97,7 +99,7 @@ int main(int argc, char* argv[]) {
   QApplication a(argc, argv);
   qWarning() << "starting the application";
 
-#ifndef LOCAL
+#ifndef USE_LOCAL_DATA
   QString returnValue = accessNamedPipes();
   QStringList listOfArgs = returnValue.split("|#|#|");
 
@@ -107,6 +109,7 @@ int main(int argc, char* argv[]) {
   }
 
   // qDebug()<<argv[1] << "," <<argv[2] << ", " << argv[3] << "," << argv[4] ;
+  qDebug()<<returnValue ;
   std::string folderPath = listOfArgs[0].toStdString();
 
   if (!isValidPath(folderPath)) {
@@ -140,7 +143,7 @@ int main(int argc, char* argv[]) {
   QString filePath = QString::fromStdString(folderPath);
 #endif
 
-#ifdef LOCAL
+#ifdef USE_LOCAL_DATA
   // const QString token = "7BPOSiooLNHRpU6fpKefKtOXaWvlqR";
   const QString course_id = "6746cd03da8f59733bddcdbe";
   const QString video_item_id = "6746d254da8f597723f09a21";

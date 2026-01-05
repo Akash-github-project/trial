@@ -37,12 +37,11 @@ class ApiManager : public QObject {
   QString deviceId = "";
 #ifdef PROD
   // QString url = "https://secure.vidsafe.in";
-  QString url = "https://msecure.vidsafe.in";
-  QString appVersion = "250701";
+ QString url = "https://msecure.vidsafe.in";
+ QString appVersion = "251203";
 #else
-
   QString url = "https://test-server.vidsafe.in";
-  QString appVersion = "250602";
+  QString appVersion = "251010";
 #endif
  public:
   BSONObjectID *bsonObjectGenerator;
@@ -74,8 +73,9 @@ class ApiManager : public QObject {
   QSslConfiguration getSslConfig();
   // QSslConfiguration getSslConfig(const QByteArray &pfxData, const QString
   // &password);
-  QSslCertificate loadPinnedCertFromBase64();
- signals:
+  QString loadPinnedCertFromBase64();
+  QByteArray getPublicKeySha256(const QSslCertificate &cert);
+  signals:
   void onKeyFetchFinished(QList<VideoData> list, MizuConfig *config,
                           int duration);
   void noNetwork(QString message);

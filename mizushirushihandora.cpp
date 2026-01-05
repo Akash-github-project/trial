@@ -70,7 +70,9 @@ void MizuShirushiHandora::postionPrimary(qreal sceneWidth, qreal sceneHeight){
     PRIMARY_WATERMARK_TEXT->setFont(font);
     PRIMARY_WATERMARK_TEXT->setTextColor(QColor(config->lgConfig->color));
 
-    QGraphicsOpacityEffect *opacityEffect = new QGraphicsOpacityEffect(this);
+    if(opacityEffect == nullptr){
+        opacityEffect = new QGraphicsOpacityEffect(this);
+    }
     opacityEffect->setOpacity(config->lgConfig->transparency / 100.0f); // 0.0 = fully transparent, 1.0 = fully opaque
     PRIMARY_WATERMARK_TEXT->setGraphicsEffect(opacityEffect);
 

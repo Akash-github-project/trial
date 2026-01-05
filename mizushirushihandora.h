@@ -75,6 +75,8 @@ class MizuShirushiHandora : public QObject {
   MizuShirushiHandora(QObject *parent, QWidget *sceen, QString userIdentifier,
                       int rows, int columns, MizuConfig *config);
 
+
+  QGraphicsOpacityEffect *opacityEffect = nullptr;
   CustomGraphicsTextItem *PRIMARY_WATERMARK_TEXT;
   MizuConfig *config;
   QVector<QLabel *> textItems;

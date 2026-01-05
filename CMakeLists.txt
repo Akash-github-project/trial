@@ -167,8 +167,8 @@ else()
     endif()
 endif()
 
-
-target_link_libraries(VidSafePlayer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/icon.o)
+#target_link_libraries(VidSafePlayer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/icon.o)
+target_link_libraries(VidSafePlayer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/icon.rc.obj)
 target_link_libraries(VidSafePlayer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 target_link_libraries(VidSafePlayer PRIVATE Qt${QT_VERSION_MAJOR}::Multimedia)
 target_link_libraries(VidSafePlayer PRIVATE Qt${QT_VERSION_MAJOR}::MultimediaWidgets)
